@@ -1,0 +1,10 @@
+galloc 2
+iconst 9
+gstore 0
+teste2: iconst 4
+gstore 1
+iconst 1
+gload 1
+iadd
+teste, ola: iprint
+halt

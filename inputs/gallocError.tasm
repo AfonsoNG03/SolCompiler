@@ -1,0 +1,15 @@
+galloc 1
+iconst 5
+gstore 0
+iconst 9
+gstore 1
+
+gload 0
+iprint
+gload 1
+iprint
+
+
+
+
+halt

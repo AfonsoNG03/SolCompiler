@@ -1,0 +1,8 @@
+dconst 3
+dconst 4.5
+dadd
+jump teste
+halt
+halt
+halt
+teste: dprint
