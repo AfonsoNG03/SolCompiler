@@ -1,6 +1,0 @@
-iconst 1
-L1, L2: iconst 2
-iconst 3
-ilt
-jumpt L3
-halt

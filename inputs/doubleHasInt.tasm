@@ -1,5 +1,0 @@
-dconst 3
-dconst 4.2
-dmult
-dprint
-halt

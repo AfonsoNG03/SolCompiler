@@ -1,3 +1,0 @@
-ola: iconst 1
-dconst "ola"
-iprint
