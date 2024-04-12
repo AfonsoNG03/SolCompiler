@@ -4,19 +4,15 @@ prog : (line | NEWLINE)*;
 
 line : PRINT (inst SEMICOLON NEWLINE | inst SEMICOLON EOF);
 
-inst : LPAREN inst RPAREN 		# Paren
-  | SUB inst		            # Unary
-  | inst op=(MULT|DIV|MOD) inst # MultDiv
-  | inst op=(ADD|SUB) inst 		# AddSub
-  | inst op=(LT|LE|GT|GE) inst	# Rel
-  | inst op=(EQ|NEQ) inst		# Equal
-  | inst op=AND inst			# And
-  | inst op=OR inst			    # Or
-  | INT                         # Int
-  | DOUBLE                      # Double
-  | STRING                      # String
-  | TRUE                        # True
-  | FALSE                       # False
+inst : LPAREN inst RPAREN 		        # Paren
+  | op=(SUB|NOT) inst		            # Unary
+  | inst op=(MULT|DIV|MOD) inst         # MultDiv
+  | inst op=(ADD|SUB) inst 		        # AddSub
+  | inst op=(LT|LE|GT|GE) inst	        # Rel
+  | inst op=(EQ|NEQ) inst		        # Equal
+  | inst op=AND inst			        # And
+  | inst op=OR inst                     # Or
+  | op=(INT|DOUBLE|STRING|TRUE|FALSE)   # Literal
   ;
 
 MULT: '*' ;
