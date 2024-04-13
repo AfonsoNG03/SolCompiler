@@ -150,7 +150,7 @@ public class ByteReader {
                     new ErrorHandler("line " + IP + " ERROR: idiv needs 2 elements on top of stack!");
                 if (!(stack.peek() instanceof Integer) || !(stack.elementAt(stack.size()-2) instanceof Integer))
                     new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Integers!");
-                if( (int)stack.elementAt(stack.size()-2) == 0 )
+                if( (int)stack.peek() == 0 )
                     new ErrorHandler("line " + IP + " ERROR: Division by 0!");
                 int temp12 = (int) stack.pop();
                 stack.push((int) stack.pop() / temp12);
@@ -160,7 +160,7 @@ public class ByteReader {
                     new ErrorHandler("line " + IP + " ERROR: imod needs 2 elements on top of stack!");
                 if (!(stack.peek() instanceof Integer) || !(stack.elementAt(stack.size()-2) instanceof Integer))
                     new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Integers!");
-                if( (int)stack.elementAt(stack.size()-2) == 0 )
+                if( (int)stack.peek() == 0 )
                     new ErrorHandler("line " + IP + " ERROR: Division by 0!");
                 int temp7 = (int) stack.pop();
                 stack.push((int) stack.pop() % temp7);
@@ -192,7 +192,7 @@ public class ByteReader {
                     new ErrorHandler("line " + IP + " ERROR: ddiv needs 2 elements on top of stack!");
                 if (!(stack.peek() instanceof Double) || !(stack.elementAt(stack.size()-2) instanceof Double))
                     new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Doubles!");
-                if( (double)stack.elementAt(stack.size()-2) == 0 )
+                if( (double)stack.peek() == 0 )
                     new ErrorHandler("line " + IP + " ERROR: Division by 0!");
                 double temp15 = (double) stack.pop();
                 stack.push((double) stack.pop() / temp15);
