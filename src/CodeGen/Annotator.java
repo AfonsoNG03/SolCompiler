@@ -14,19 +14,15 @@ import org.antlr.v4.runtime.tree.*;
 
 public class Annotator extends SolBaseVisitor<Void> {
     ParseTreeProperty<Type> values = new ParseTreeProperty<Type>();
+    SemanticErrors sErr = new SemanticErrors();
 
     @Override public Void visitProg(SolParser.ProgContext ctx) {
         visitChildren(ctx);
-        int i=0;
-        for (SolParser.LineContext line : ctx.line()) {
-            Type type = values.get(line);
-            if (type == Type.ERRO){
-                System.out.println("Error in line " + line.getStart().getLine());
-                i++;
-            }
+        int nErr = this.sErr.getNumErr();
+        if(nErr > 0) {
+            new ErrorHandler(nErr + " errors found!");
+            System.exit(0);
         }
-        if (i>0)
-            new ErrorHandler(i + " Errors found!");
         return null;
     }
 
@@ -42,6 +38,7 @@ public class Annotator extends SolBaseVisitor<Void> {
         Type type1 = values.get(ctx.getChild(0));
         Type type2 = values.get(ctx.getChild(2));
         Type finalType = TypeChecker.BinaryOperationCheck(type1, type2);
+        if(finalType == Type.ERRO) sErr.binaryOrOpErr(ctx);
         values.put(ctx, finalType);
         return null;
     }
@@ -56,7 +53,7 @@ public class Annotator extends SolBaseVisitor<Void> {
             finalType = TypeChecker.addCheck(type1, type2);
         else if (ctx.op.getType() == SolParser.SUB)
             finalType = TypeChecker.genericOperationCheck(type1, type2);
-
+        if(finalType == Type.ERRO) sErr.addSubOpErr(ctx);
         values.put(ctx, finalType);
         return null;
     }
@@ -66,6 +63,7 @@ public class Annotator extends SolBaseVisitor<Void> {
         Type type1 = values.get(ctx.getChild(0));
         Type type2 = values.get(ctx.getChild(2));
         Type finalType = TypeChecker.equalCheck(type1, type2);
+        if(finalType == Type.ERRO) sErr.equalOpErr(ctx);
         values.put(ctx, finalType);
         return null;
     }
@@ -75,6 +73,7 @@ public class Annotator extends SolBaseVisitor<Void> {
         Type type1 = values.get(ctx.getChild(0));
         Type type2 = values.get(ctx.getChild(2));
         Type finalType = TypeChecker.BinaryOperationCheck(type1, type2);
+        if(finalType == Type.ERRO) sErr.andOpErr(ctx);
         values.put(ctx, finalType);
         return null;
     }
@@ -102,6 +101,7 @@ public class Annotator extends SolBaseVisitor<Void> {
         Type type1 = values.get(ctx.getChild(0));
         Type type2 = values.get(ctx.getChild(2));
         Type finalType = TypeChecker.RelOpCheck(type1, type2);
+        if(finalType == Type.ERRO) sErr.relOpErr(ctx);
         values.put(ctx, finalType);
         return null;
     }
@@ -114,6 +114,7 @@ public class Annotator extends SolBaseVisitor<Void> {
             finalType = TypeChecker.UnaryCheck(type);
         else if (ctx.op.getType() == SolParser.NOT)
             finalType = TypeChecker.NotCheck(type);
+        if(finalType == Type.ERRO) sErr.unaryOpErr(ctx);
         values.put(ctx, finalType);
         return null;
     }
@@ -134,6 +135,7 @@ public class Annotator extends SolBaseVisitor<Void> {
             finalType = TypeChecker.modCheck(type1, type2);
         else
             finalType = TypeChecker.genericOperationCheck(type1, type2);
+        if(finalType == Type.ERRO) sErr.multDivOpErr(ctx);
         values.put(ctx, finalType);
         return null;
     }
