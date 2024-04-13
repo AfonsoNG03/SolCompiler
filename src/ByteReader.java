@@ -135,7 +135,8 @@ public class ByteReader {
                     new ErrorHandler("line " + IP + " ERROR: isub needs 2 elements on top of stack!");
                 if (!(stack.peek() instanceof Integer) || !(stack.elementAt(stack.size()-2) instanceof Integer))
                     new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Integers!");
-                stack.push((int) stack.pop() - (int) stack.pop());
+                int temp6 = (int) stack.pop();
+                stack.push((int) stack.pop() - temp6);
                 break;
             case imul:
                 if(stack.size() < 2)
@@ -151,7 +152,8 @@ public class ByteReader {
                     new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Integers!");
                 if( (int)stack.elementAt(stack.size()-2) == 0 )
                     new ErrorHandler("line " + IP + " ERROR: Division by 0!");
-                stack.push((int) stack.pop() / (int) stack.pop());
+                int temp12 = (int) stack.pop();
+                stack.push((int) stack.pop() / temp12);
                 break;
             case imod:
                 if(stack.size() < 2)
@@ -160,7 +162,8 @@ public class ByteReader {
                     new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Integers!");
                 if( (int)stack.elementAt(stack.size()-2) == 0 )
                     new ErrorHandler("line " + IP + " ERROR: Division by 0!");
-                stack.push((int) stack.pop() % (int) stack.pop());
+                int temp7 = (int) stack.pop();
+                stack.push((int) stack.pop() % temp7);
                 break;
             case dadd:
                 if(stack.size() < 2)
@@ -174,7 +177,8 @@ public class ByteReader {
                     new ErrorHandler("line " + IP + " ERROR: dsub needs 2 elements on top of stack!");
                 if (!(stack.peek() instanceof Double) || !(stack.elementAt(stack.size()-2) instanceof Double))
                     new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Doubles!");
-                stack.push((double) stack.pop() - (double) stack.pop());
+                double temp = (double) stack.pop();
+                stack.push((double) stack.pop() - temp);
                 break;
             case dmul:
                 if(stack.size() < 2)
@@ -190,7 +194,8 @@ public class ByteReader {
                     new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Doubles!");
                 if( (double)stack.elementAt(stack.size()-2) == 0 )
                     new ErrorHandler("line " + IP + " ERROR: Division by 0!");
-                stack.push((double) stack.pop() / (double) stack.pop());
+                double temp15 = (double) stack.pop();
+                stack.push((double) stack.pop() / temp15);
                 break;
             case sadd:
                 if(stack.size() < 2)
@@ -205,7 +210,9 @@ public class ByteReader {
                     new ErrorHandler("line " + IP + " ERROR: and needs 2 elements on top of stack!");
                 if (!(stack.peek() instanceof Boolean) || !(stack.elementAt(stack.size()-2) instanceof Boolean))
                     new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Booleans!");
-                stack.push((boolean) stack.pop() && (boolean) stack.pop());
+                boolean temp5 = (boolean) stack.pop();
+                boolean temp16 = (boolean) stack.pop();
+                stack.push(temp5 && temp16);
                 break;
             case or:
                 if(stack.size() < 2)
@@ -240,15 +247,32 @@ public class ByteReader {
                     new ErrorHandler("line " + IP + " ERROR: ilt needs 2 elements on top of stack!");
                 if (!(stack.peek() instanceof Integer) || !(stack.elementAt(stack.size()-2) instanceof Integer))
                     new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Integers!");
-                int temp = (int) stack.pop();
-                stack.push((int) stack.pop() < temp);
+                int temp17 = (int) stack.pop();
+                stack.push((int) stack.pop() < temp17);
                 break;
             case ileq:
                 if(stack.size() < 2)
                     new ErrorHandler("line " + IP + " ERROR: ileq needs 2 elements on top of stack!");
                 if (!(stack.peek() instanceof Integer) || !(stack.elementAt(stack.size()-2) instanceof Integer))
                     new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Integers!");
-                stack.push((int) stack.pop() <= (int) stack.pop());
+                int temp3 = (int) stack.pop();
+                stack.push((int) stack.pop() <= temp3);
+                break;
+            case igt:
+                if(stack.size() < 2)
+                    new ErrorHandler("line " + IP + " ERROR: ilt needs 2 elements on top of stack!");
+                if (!(stack.peek() instanceof Integer) || !(stack.elementAt(stack.size()-2) instanceof Integer))
+                    new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Integers!");
+                int temp1 = (int) stack.pop();
+                stack.push((int) stack.pop() > temp1);
+                break;
+            case igeq:
+                if(stack.size() < 2)
+                    new ErrorHandler("line " + IP + " ERROR: ileq needs 2 elements on top of stack!");
+                if (!(stack.peek() instanceof Integer) || !(stack.elementAt(stack.size()-2) instanceof Integer))
+                    new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Integers!");
+                int temp4 = (int) stack.pop();
+                stack.push((int) stack.pop() >= temp4);
                 break;
             case deq:
                 if(stack.size() < 2)
@@ -269,14 +293,32 @@ public class ByteReader {
                     new ErrorHandler("line " + IP + " ERROR: dlt needs 2 elements on top of stack!");
                 if (!(stack.peek() instanceof Double) || !(stack.elementAt(stack.size()-2) instanceof Double))
                     new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Doubles!");
-                stack.push((double) stack.pop() < (double) stack.pop());
+                double temp8 = (double) stack.pop();
+                stack.push((double) stack.pop() < temp8);
                 break;
             case dleq:
                 if(stack.size() < 2)
                     new ErrorHandler("line " + IP + " ERROR: dleq needs 2 elements on top of stack!");
                 if (!(stack.peek() instanceof Double) || !(stack.elementAt(stack.size()-2) instanceof Double))
                     new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Doubles!");
-                stack.push((double) stack.pop() <= (double) stack.pop());
+                double temp9 = (double) stack.pop();
+                stack.push((double) stack.pop() <= temp9);
+                break;
+            case dgt:
+                if(stack.size() < 2)
+                    new ErrorHandler("line " + IP + " ERROR: dlt needs 2 elements on top of stack!");
+                if (!(stack.peek() instanceof Double) || !(stack.elementAt(stack.size()-2) instanceof Double))
+                    new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Doubles!");
+                double temp10 = (double) stack.pop();
+                stack.push((double) stack.pop() > temp10);
+                break;
+            case dgeq:
+                if(stack.size() < 2)
+                    new ErrorHandler("line " + IP + " ERROR: dleq needs 2 elements on top of stack!");
+                if (!(stack.peek() instanceof Double) || !(stack.elementAt(stack.size()-2) instanceof Double))
+                    new ErrorHandler("line " + IP + " ERROR: Invalid types at top of stack: Must be Doubles!");
+                double temp11 = (double) stack.pop();
+                stack.push((double) stack.pop() >= temp11);
                 break;
             case beq:
                 if(stack.size() < 2)
@@ -407,9 +449,6 @@ public class ByteReader {
             if(trace)
                 print(code.get(IP));
             execInst(code.get(IP++));
-        }
-        if (!hasHalt) {
-            new ErrorHandler("ERROR: halt instruction not found!");
         }
     }
 

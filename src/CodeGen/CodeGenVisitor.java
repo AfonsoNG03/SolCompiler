@@ -7,206 +7,232 @@ package CodeGen; /***
  * Visit http://www.pragmaticprogrammer.com/titles/tpantlr2 for more book information.
  ***/
 
-import Tasm.*;
-import org.antlr.v4.runtime.tree.ErrorNode;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.RuleNode;
-import org.antlr.v4.runtime.tree.TerminalNode;
+
+import Sol.*;
+import org.antlr.v4.runtime.tree.*;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 
-public class CodeGenVisitor extends TasmBaseVisitor<Void> {
+public class CodeGenVisitor extends SolBaseVisitor<Void> {
     private ArrayList<Instruction> instructions = new ArrayList<>();
     private ArrayList<Instruction> constantPool = new ArrayList<>();
-    private Map<String, Integer> labels;
-    public CodeGenVisitor(Map<String, Integer> labels) {
-        this.labels = labels;
+    ParseTreeProperty<Type> values;
+
+    public CodeGenVisitor( ParseTreeProperty<Type> values) {
+        super();
+        this.values = values;
     }
 
-    @Override public Void visitHalt(TasmParser.HaltContext ctx) {
-        emit(OpCode.halt);
-        return null;
-    }
-    @Override
-    public Void visitMemoryOp(TasmParser.MemoryOpContext ctx) {
-        visit(ctx.INT());
-        if (ctx.op.getType() == TasmParser.GALLOC) {
-            emit(OpCode.galloc, Integer.parseInt(ctx.INT().getText()));
-        } else if (ctx.op.getType() == TasmParser.GLOAD) {
-            emit(OpCode.gload, Integer.parseInt(ctx.INT().getText()));
-        } else{
-            emit(OpCode.gstore, Integer.parseInt(ctx.INT().getText()));
+
+    @Override public Void visitLine(SolParser.LineContext ctx) {
+        visitChildren(ctx);
+        Type type = values.get(ctx);
+        switch (type) {
+            case Type.INT:
+                emit(OpCode.iprint);
+                break;
+            case Type.REAL:
+                emit(OpCode.dprint);
+                break;
+            case Type.STRING:
+                emit(OpCode.sprint);
+                break;
+            case Type.BOOL:
+                emit(OpCode.bprint);
+                break;
         }
 
         return null;
     }
 
-    @Override
-    public Void visitIntConst(TasmParser.IntConstContext ctx) {
-        visit(ctx.INT());
-        emit(OpCode.iconst, Integer.parseInt(ctx.INT().getText()));
+    @Override public Void visitOr(SolParser.OrContext ctx) {
+        Type type = values.get(ctx.getParent());
+        values.put(ctx, type);
+        visitChildren(ctx);
+        emit(OpCode.or);
         return null;
     }
 
-    @Override
-    public Void visitDoubleConst(TasmParser.DoubleConstContext ctx) {
-        if(ctx.stop.getType() == TasmParser.INT) {
-            visit(ctx.INT());
-            emit(OpCode.dconst, Double.parseDouble(ctx.INT().getText()));
-        }
-        else {
-            visit(ctx.DOUBLE());
-            emit(OpCode.dconst, Double.parseDouble(ctx.DOUBLE().getText()));
-        }
-        return null;
-    }
-
-    @Override
-    public Void visitStringConst(TasmParser.StringConstContext ctx) {
-        visit(ctx.STRING());
-        String noEscapes = ctx.STRING().getText().substring(1, ctx.STRING().getText().length()-1).replace("\\", "");
-        emit(OpCode.sconst, noEscapes);
-        return null;
-    }
-
-    @Override
-    public Void visitBooleanConst(TasmParser.BooleanConstContext ctx) {
-        if (ctx.op.getType() == TasmParser.TCONST) {
-            emit(OpCode.tconst);
-        } else {
-            emit(OpCode.fconst);
+    @Override public Void visitAddSub(SolParser.AddSubContext ctx) {
+        Type type = values.get(ctx.getParent());
+        values.put(ctx, type);
+        visitChildren(ctx);
+        if (ctx.op.getType() == SolParser.ADD) {
+            if (type == Type.INT)
+                emit(OpCode.iadd);
+            else if (type == Type.REAL)
+                emit(OpCode.dadd);
+            else if (type == Type.STRING)
+                emit(OpCode.sadd);
+        } else if (ctx.op.getType() == SolParser.SUB) {
+            if (type == Type.INT)
+                emit(OpCode.isub);
+            else if (type == Type.REAL)
+                emit(OpCode.dsub);
         }
         return null;
     }
 
-    @Override
-    public Void visitUnaryOp(TasmParser.UnaryOpContext ctx) {
-        if (ctx.op.getType() == TasmParser.IUMINUS) {
-            emit(OpCode.iuminus);
-        } else {
-            emit(OpCode.duminus);
+    @Override public Void visitEqual(SolParser.EqualContext ctx) {
+        Type type1 = values.get(ctx.getChild(0));
+        Type type2 = values.get(ctx.getChild(2));
+        Type finalType = TypeChecker.equalCheckGenerator(type1, type2);
+        values.put(ctx, finalType);
+        visitChildren(ctx);
+
+        switch (finalType) {
+            case Type.INT:
+                if (ctx.op.getType() == SolParser.EQ)
+                    emit(OpCode.ieq);
+                else
+                    emit(OpCode.ineq);
+                break;
+            case Type.REAL:
+                if (ctx.op.getType() == SolParser.EQ)
+                    emit(OpCode.deq);
+                else
+                    emit(OpCode.dneq);
+                break;
+            case Type.STRING:
+                if (ctx.op.getType() == SolParser.EQ)
+                    emit(OpCode.seq);
+                else
+                    emit(OpCode.sneq);
+                break;
+            case Type.BOOL:
+                if (ctx.op.getType() == SolParser.EQ)
+                    emit(OpCode.beq);
+                else
+                    emit(OpCode.bneq);
+                break;
         }
-        return null;
-    }
-
-    @Override
-    public Void visitJumpStat(TasmParser.JumpStatContext ctx) {
-        visit(ctx.LABEL());
-        if (!labels.containsKey(ctx.LABEL().getText()))
-            new ErrorHandler("ERROR: Label not defined: " + ctx.LABEL().getText());
-        if (ctx.op.getType() == TasmParser.JUMP) {
-            emit(OpCode.jump, labels.get(ctx.LABEL().getText()));
-        } else if (ctx.op.getType() == TasmParser.JUMPT) {
-            emit(OpCode.jumpt, labels.get(ctx.LABEL().getText()));
-        } else {
-            emit(OpCode.jumpf, labels.get(ctx.LABEL().getText()));
-        }
-        return null;
-    }
-
-    @Override
-    public Void visitCompareOp(TasmParser.CompareOpContext ctx) {
-        if (ctx.op.getType() == TasmParser.IEQ) {
-            emit(OpCode.ieq);
-        } else if (ctx.op.getType() == TasmParser.INEQ) {
-            emit(OpCode.ineq);
-        } else if (ctx.op.getType() == TasmParser.ILT) {
-            emit(OpCode.ilt);
-        } else if (ctx.op.getType() == TasmParser.ILEQ) {
-            emit(OpCode.ileq);
-        } else if (ctx.op.getType() == TasmParser.DEQ) {
-            emit(OpCode.deq);
-        } else if (ctx.op.getType() == TasmParser.DNEQ) {
-            emit(OpCode.dneq);
-        } else if (ctx.op.getType() == TasmParser.DLT) {
-            emit(OpCode.dlt);
-        } else if (ctx.op.getType() == TasmParser.DLEQ) {
-            emit(OpCode.dleq);
-        } else if (ctx.op.getType() == TasmParser.BEQ) {
-            emit(OpCode.beq);
-        } else if (ctx.op.getType() == TasmParser.BNEQ){
-            emit(OpCode.bneq);
-        } else if (ctx.op.getType() == TasmParser.SEQ) {
-            emit(OpCode.seq);
-        } else {
-            emit(OpCode.sneq);
-        }
-        return null;
-    }
-
-    @Override
-    public Void visitBinaryOp(TasmParser.BinaryOpContext ctx) {
-        if (ctx.op.getType() == TasmParser.AND) {
-            emit(OpCode.and);
-        } else if (ctx.op.getType() == TasmParser.OR) {
-            emit(OpCode.or);
-        } else {
-            emit(OpCode.not);
-        }
-        return null;
-    }
-
-    @Override
-    public Void visitOperations(TasmParser.OperationsContext ctx) {
-        if (ctx.op.getType() == TasmParser.IADD)
-            emit(OpCode.iadd);
-        else if (ctx.op.getType() == TasmParser.ISUB)
-            emit(OpCode.isub);
-        else if (ctx.op.getType() == TasmParser.IMULT)
-            emit(OpCode.imul);
-        else if (ctx.op.getType() == TasmParser.IDIV)
-            emit(OpCode.idiv);
-        else if (ctx.op.getType() == TasmParser.IMOD)
-            emit(OpCode.imod);
-        else if (ctx.op.getType() == TasmParser.DADD)
-            emit(OpCode.dadd);
-        else if (ctx.op.getType() == TasmParser.DSUB)
-            emit(OpCode.dsub);
-        else if (ctx.op.getType() == TasmParser.DMULT)
-            emit(OpCode.dmul);
-        else if (ctx.op.getType() == TasmParser.DDIV)
-            emit(OpCode.ddiv);
-        else
-            emit(OpCode.sadd);
-        return null;
-    }
-
-    @Override
-    public Void visitTypeConversion(TasmParser.TypeConversionContext ctx) {
-        if (ctx.op.getType() == TasmParser.ITOS) {
-            emit(OpCode.itos);
-        } else if (ctx.op.getType() == TasmParser.ITOD) {
-            emit(OpCode.itod);
-        } else if (ctx.op.getType() == TasmParser.DTOS) {
-            emit(OpCode.dtos);
-        } else {
+        if(values.get(ctx.getParent()) == Type.STRING)
             emit(OpCode.btos);
-        }
         return null;
     }
-    @Override
-    public Void visitPrintStat(TasmParser.PrintStatContext ctx) {
-        if (ctx.op.getType() == TasmParser.IPRINT) {
-            emit(OpCode.iprint);
-        } else if (ctx.op.getType() == TasmParser.DPRINT) {
-            emit(OpCode.dprint);
-        } else if (ctx.op.getType() == TasmParser.SPRINT) {
-            emit(OpCode.sprint);
-        } else {
-            emit(OpCode.bprint);
+
+    @Override public Void visitAnd(SolParser.AndContext ctx) {
+        Type type = values.get(ctx.getParent());
+        values.put(ctx, type);
+        visitChildren(ctx);
+        emit(OpCode.and);
+        return null;
+    }
+
+    @Override public Void visitLiteral(SolParser.LiteralContext ctx) {
+        Type type = values.get(ctx.getParent());
+        switch (ctx.op.getType()) {
+            case SolParser.INT:
+                emit(OpCode.iconst, Integer.parseInt(ctx.getText()));
+                if (type == Type.REAL)
+                    emit(OpCode.itod);
+                if (type == Type.STRING)
+                    emit(OpCode.itos);
+                break;
+            case SolParser.DOUBLE:
+                emit(OpCode.dconst, Double.parseDouble(ctx.getText()));
+                if (type == Type.STRING)
+                    emit(OpCode.dtos);
+                break;
+            case SolParser.STRING:
+                String noEscapes = ctx.getText().substring(1, ctx.STRING().getText().length()-1).replace("\\", "");
+                emit(OpCode.sconst, noEscapes);
+                break;
+            case SolParser.TRUE:
+                emit(OpCode.tconst);
+                if (type == Type.STRING)
+                    emit(OpCode.btos);
+                break;
+            case SolParser.FALSE:
+                emit(OpCode.fconst);
+                if (type == Type.STRING)
+                    emit(OpCode.btos);
+                break;
         }
         return null;
     }
 
-    @Override
-    public Void visitLabel(TasmParser.LabelContext ctx) {
-        visit(ctx.inst());
+    @Override public Void visitRel(SolParser.RelContext ctx) {
+        Type type1 = values.get(ctx.getChild(0));
+        Type type2 = values.get(ctx.getChild(2));
+        Type finalType = TypeChecker.RelOpCheckGenerator(type1, type2);
+        values.put(ctx, finalType);
+        visitChildren(ctx);
+
+        switch (finalType) {
+            case Type.INT:
+                if (ctx.op.getType() == SolParser.LT)
+                    emit(OpCode.ilt);
+                else if (ctx.op.getType() == SolParser.LE)
+                    emit(OpCode.ileq);
+                else if (ctx.op.getType() == SolParser.GT)
+                    emit(OpCode.igt);
+                else if (ctx.op.getType() == SolParser.GE)
+                    emit(OpCode.igeq);
+                break;
+            case Type.REAL:
+                if (ctx.op.getType() == SolParser.LT)
+                    emit(OpCode.dlt);
+                else if (ctx.op.getType() == SolParser.LE)
+                    emit(OpCode.dlt);
+                else if (ctx.op.getType() == SolParser.GT)
+                    emit(OpCode.dgt);
+                else if (ctx.op.getType() == SolParser.GE)
+                    emit(OpCode.dgeq);
+                break;
+        }
+
+        if (values.get(ctx.getParent()) == Type.STRING)
+            emit(OpCode.btos);
         return null;
     }
+
+    @Override public Void visitUnary(SolParser.UnaryContext ctx) {
+        Type type = values.get(ctx.getParent());
+        values.put(ctx, type);
+        visitChildren(ctx);
+        if (ctx.op.getType() == SolParser.SUB)
+            if (type == Type.INT)
+                emit(OpCode.iuminus);
+            else if (type == Type.REAL)
+                emit(OpCode.duminus);
+        else if (ctx.op.getType() == SolParser.NOT)
+            emit(OpCode.not);
+        return null;
+    }
+
+    @Override public Void visitParen(SolParser.ParenContext ctx) {
+        Type type = values.get(ctx.getParent());
+        values.put(ctx, type);
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override public Void visitMultDiv(SolParser.MultDivContext ctx) {
+        Type type = values.get(ctx.getParent());
+        values.put(ctx, type);
+        visitChildren(ctx);
+        if (ctx.op.getType() == SolParser.MOD)
+            emit(OpCode.imod);
+        else if (ctx.op.getType() == SolParser.MULT){
+            if (type == Type.INT)
+                emit(OpCode.imul);
+            else if (type == Type.REAL)
+                emit(OpCode.dmul);}
+        else if (ctx.op.getType() == SolParser.DIV){
+            if (type == Type.INT)
+                emit(OpCode.idiv);
+            else if (type == Type.REAL)
+                emit(OpCode.ddiv);}
+        return null;
+    }
+
+
     public void emit(OpCode opCode) {
         instructions.add(new Instruction(opCode));
     }

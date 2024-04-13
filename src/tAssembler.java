@@ -1,33 +1,33 @@
 import CodeGen.*;
-import Tasm.TasmLexer;
-import Tasm.TasmParser;
+import Sol.SolLexer;
+import Sol.SolParser;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 import java.io.*;
-import java.util.Map;
+
 
 public class tAssembler {
     public static void main(String[] args) {
         String inputFile = args.length > 0 ? args[0] : null;
         boolean debug = args.length > 1 ? args[1].equals("-d") : false;
         try (InputStream is = (inputFile != null) ? new FileInputStream(inputFile) : System.in) {
-            if (inputFile != null && !inputFile.endsWith(".tasm"))
+            if (inputFile != null && !inputFile.endsWith(".sol"))
                 throw new IOException();
             CharStream input = CharStreams.fromStream(is);
-            TasmLexer lexer = new TasmLexer(input);
+            SolLexer lexer = new SolLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
-            TasmParser parser = new TasmParser(tokens);
+            SolParser parser = new SolParser(tokens);
             ParseTree tree = parser.prog();
-            LabelFinder labelfinder = new LabelFinder();
-            labelfinder.visit(tree);
-            Map labels = labelfinder.getLabels();
-            CodeGenVisitor assembler = new CodeGenVisitor(labels);
+            Annotator annotator = new Annotator();
+            annotator.visit(tree);
+            ParseTreeProperty<Type> values = annotator.getValues();
+            CodeGenVisitor assembler = new CodeGenVisitor(values);
             assembler.visit(tree);
             //Error handling
-            labelfinder.isHaltFound();
             if (parser.getNumberOfSyntaxErrors() > 0)
                 System.exit(1);
             //
@@ -35,9 +35,10 @@ public class tAssembler {
             DataOutputStream dos = new DataOutputStream(new FileOutputStream("inputs/" + outputFile));
             assembler.write(dos);
             if (debug){
-                System.out.println(labels.toString());
+                //System.out.println(labels.toString());
                 assembler.print();
             }
+
         } catch (IOException e) {
             System.out.println(e);
         }
