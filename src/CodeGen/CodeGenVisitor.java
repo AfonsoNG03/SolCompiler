@@ -162,28 +162,24 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
         Type type2 = values.get(ctx.getChild(2));
         Type finalType = TypeChecker.RelOpCheckGenerator(type1, type2);
         values.put(ctx, finalType);
-        visitChildren(ctx);
+        if (ctx.op.getType() == SolParser.GT || ctx.op.getType() == SolParser.GE) {
+            visit(ctx.getChild(2));
+            visit(ctx.getChild(0));
+        } else
+            visitChildren(ctx);
 
         switch (finalType) {
             case Type.INT:
-                if (ctx.op.getType() == SolParser.LT)
+                if (ctx.op.getType() == SolParser.LT || ctx.op.getType() == SolParser.GT)
                     emit(OpCode.ilt);
-                else if (ctx.op.getType() == SolParser.LE)
+                else if (ctx.op.getType() == SolParser.LE || ctx.op.getType() == SolParser.GE)
                     emit(OpCode.ileq);
-                else if (ctx.op.getType() == SolParser.GT)
-                    emit(OpCode.igt);
-                else if (ctx.op.getType() == SolParser.GE)
-                    emit(OpCode.igeq);
                 break;
             case Type.REAL:
-                if (ctx.op.getType() == SolParser.LT)
+                if (ctx.op.getType() == SolParser.LT || ctx.op.getType() == SolParser.GT)
                     emit(OpCode.dlt);
-                else if (ctx.op.getType() == SolParser.LE)
+                else if (ctx.op.getType() == SolParser.LE || ctx.op.getType() == SolParser.GE)
                     emit(OpCode.dlt);
-                else if (ctx.op.getType() == SolParser.GT)
-                    emit(OpCode.dgt);
-                else if (ctx.op.getType() == SolParser.GE)
-                    emit(OpCode.dgeq);
                 break;
         }
 

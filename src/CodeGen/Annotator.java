@@ -11,7 +11,6 @@ package CodeGen; /***
 import Sol.*;
 import org.antlr.v4.runtime.tree.*;
 
-
 public class Annotator extends SolBaseVisitor<Void> {
     ParseTreeProperty<Type> values = new ParseTreeProperty<Type>();
     SemanticErrors sErr = new SemanticErrors();
@@ -21,7 +20,6 @@ public class Annotator extends SolBaseVisitor<Void> {
         int nErr = this.sErr.getNumErr();
         if(nErr > 0) {
             new ErrorHandler(nErr + " errors found!");
-            System.exit(0);
         }
         return null;
     }
