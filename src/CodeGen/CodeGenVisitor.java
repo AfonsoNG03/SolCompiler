@@ -163,8 +163,8 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
         Type finalType = TypeChecker.RelOpCheckGenerator(type1, type2);
         values.put(ctx, finalType);
         if (ctx.op.getType() == SolParser.GT || ctx.op.getType() == SolParser.GE) {
-            visit(ctx.getChild(2));
-            visit(ctx.getChild(0));
+            visit(ctx.children.getLast());
+            visit(ctx.children.getFirst());
         } else
             visitChildren(ctx);
 
