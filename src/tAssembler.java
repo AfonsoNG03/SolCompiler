@@ -31,8 +31,8 @@ public class tAssembler {
             if (parser.getNumberOfSyntaxErrors() > 0)
                 System.exit(1);
             //
-            String outputFile = inputFile != null ? inputFile.substring(inputFile.lastIndexOf("/")+1, inputFile.lastIndexOf(".")).concat(".tbc") : "output.tbc";
-            DataOutputStream dos = new DataOutputStream(new FileOutputStream("inputs/" + outputFile));
+            String outputFile = inputFile != null ? inputFile.substring(0, inputFile.lastIndexOf(".")).concat(".tbc") : "output.tbc";
+            DataOutputStream dos = new DataOutputStream(new FileOutputStream(outputFile));
             assembler.write(dos);
             if (debug){
                 //System.out.println(labels.toString());
