@@ -13,7 +13,8 @@ import org.antlr.v4.runtime.tree.*;
 
 public class Annotator extends SolBaseVisitor<Void> {
     ParseTreeProperty<Type> values = new ParseTreeProperty<Type>();
-    SemanticErrors sErr = new SemanticErrors();
+    SemanticErrors sErr = new SemanticErrors(values);
+    Boolean LineError = false;
 
     @Override public Void visitProg(SolParser.ProgContext ctx) {
         visitChildren(ctx);
@@ -25,6 +26,7 @@ public class Annotator extends SolBaseVisitor<Void> {
     }
 
     @Override public Void visitLine(SolParser.LineContext ctx) {
+        LineError = false;
         visitChildren(ctx);
         Type type = values.get(ctx.inst());
         values.put(ctx, type);
@@ -33,16 +35,21 @@ public class Annotator extends SolBaseVisitor<Void> {
 
     @Override public Void visitOr(SolParser.OrContext ctx) {
         visitChildren(ctx);
+        if (LineError) return null;
         Type type1 = values.get(ctx.inst(0));
         Type type2 = values.get(ctx.inst(1));
         Type finalType = TypeChecker.BinaryOperationCheck(type1, type2);
-        if(finalType == Type.ERRO) sErr.binaryOrOpErr(ctx);
+        if(finalType == Type.ERRO) {
+            sErr.GenericErr(ctx);
+            LineError = true;
+        }
         values.put(ctx, finalType);
         return null;
     }
 
     @Override public Void visitAddSub(SolParser.AddSubContext ctx) {
         visitChildren(ctx);
+        if (LineError) return null;
         Type type1 = values.get(ctx.inst(0));
         Type type2 = values.get(ctx.inst(1));
         Type finalType = Type.ERRO;
@@ -51,32 +58,44 @@ public class Annotator extends SolBaseVisitor<Void> {
             finalType = TypeChecker.addCheck(type1, type2);
         else if (ctx.op.getType() == SolParser.SUB)
             finalType = TypeChecker.genericOperationCheck(type1, type2);
-        if(finalType == Type.ERRO) sErr.addSubOpErr(ctx);
+        if(finalType == Type.ERRO) {
+            sErr.GenericErr(ctx);
+            LineError = true;
+        }
         values.put(ctx, finalType);
         return null;
     }
 
     @Override public Void visitEqual(SolParser.EqualContext ctx) {
         visitChildren(ctx);
+        if (LineError) return null;
         Type type1 = values.get(ctx.inst(0));
         Type type2 = values.get(ctx.inst(1));
         Type finalType = TypeChecker.equalCheck(type1, type2);
-        if(finalType == Type.ERRO) sErr.equalOpErr(ctx);
+        if(finalType == Type.ERRO) {
+            sErr.GenericErr(ctx);
+            LineError = true;
+        }
         values.put(ctx, finalType);
         return null;
     }
 
     @Override public Void visitAnd(SolParser.AndContext ctx) {
         visitChildren(ctx);
+        if (LineError) return null;
         Type type1 = values.get(ctx.inst(0));
         Type type2 = values.get(ctx.inst(1));
         Type finalType = TypeChecker.BinaryOperationCheck(type1, type2);
-        if(finalType == Type.ERRO) sErr.andOpErr(ctx);
+        if(finalType == Type.ERRO) {
+            sErr.GenericErr(ctx);
+            LineError = true;
+        }
         values.put(ctx, finalType);
         return null;
     }
 
     @Override public Void visitLiteral(SolParser.LiteralContext ctx) {
+        if (LineError) return null;
         switch (ctx.op.getType()) {
             case SolParser.INT:
                 values.put(ctx, Type.INT);
@@ -96,29 +115,38 @@ public class Annotator extends SolBaseVisitor<Void> {
 
     @Override public Void visitRel(SolParser.RelContext ctx) {
         visitChildren(ctx);
+        if (LineError) return null;
         Type type1 = values.get(ctx.inst(0));
         Type type2 = values.get(ctx.inst(1));
         Type finalType = TypeChecker.RelOpCheck(type1, type2);
-        if(finalType == Type.ERRO) sErr.relOpErr(ctx);
+        if(finalType == Type.ERRO) {
+            sErr.GenericErr(ctx);
+            LineError = true;
+        }
         values.put(ctx, finalType);
         return null;
     }
 
     @Override public Void visitUnary(SolParser.UnaryContext ctx) {
         visitChildren(ctx);
+        if (LineError) return null;
         Type type = values.get(ctx.inst());
         Type finalType = Type.ERRO;
         if (ctx.op.getType() == SolParser.SUB)
             finalType = TypeChecker.UnaryCheck(type);
         else if (ctx.op.getType() == SolParser.NOT)
             finalType = TypeChecker.NotCheck(type);
-        if(finalType == Type.ERRO) sErr.unaryOpErr(ctx);
-        values.put(ctx, finalType);
+        if(finalType == Type.ERRO) {
+            sErr.GenericErr(ctx);
+            LineError = true;
+        }
+            values.put(ctx, finalType);
         return null;
     }
 
     @Override public Void visitParen(SolParser.ParenContext ctx) {
         visitChildren(ctx);
+        if (LineError) return null;
         Type type = values.get(ctx.inst());
         values.put(ctx, type);
         return null;
@@ -126,6 +154,7 @@ public class Annotator extends SolBaseVisitor<Void> {
 
     @Override public Void visitMultDiv(SolParser.MultDivContext ctx) {
         visitChildren(ctx);
+        if (LineError) return null;
         Type type1 = values.get(ctx.inst(0));
         Type type2 = values.get(ctx.inst(1));
         Type finalType;
@@ -133,7 +162,10 @@ public class Annotator extends SolBaseVisitor<Void> {
             finalType = TypeChecker.modCheck(type1, type2);
         else
             finalType = TypeChecker.genericOperationCheck(type1, type2);
-        if(finalType == Type.ERRO) sErr.multDivOpErr(ctx);
+        if(finalType == Type.ERRO) {
+            sErr.GenericErr(ctx);
+            LineError = true;
+        }
         values.put(ctx, finalType);
         return null;
     }
