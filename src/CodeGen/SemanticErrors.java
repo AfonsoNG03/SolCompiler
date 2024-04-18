@@ -24,6 +24,11 @@ public class SemanticErrors {
         numErr++;
     }
 
+    public void unaryOpErr(SolParser.UnaryContext ctx) {
+        System.out.println("line "+ctx.start.getLine()+" error: "+ ctx.op.getText() + " is invalid for type " + values.get(ctx.inst()));
+        numErr++;
+    }
+
     public void binaryOrOpErr(SolParser.OrContext ctx) {
         System.out.println("line "+ctx.start.getLine()+" error: invalid types for operation "+ ctx.op.getText());
         numErr++;
@@ -51,11 +56,6 @@ public class SemanticErrors {
     }
 
     public void multDivOpErr(SolParser.MultDivContext ctx) {
-        System.out.println("line "+ctx.start.getLine()+" error: invalid types for operation "+ ctx.op.getText());
-        numErr++;
-    }
-
-    public void unaryOpErr(SolParser.UnaryContext ctx) {
         System.out.println("line "+ctx.start.getLine()+" error: invalid types for operation "+ ctx.op.getText());
         numErr++;
     }

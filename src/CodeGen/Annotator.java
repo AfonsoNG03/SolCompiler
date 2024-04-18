@@ -30,6 +30,7 @@ public class Annotator extends SolBaseVisitor<Void> {
         visitChildren(ctx);
         Type type = values.get(ctx.inst());
         values.put(ctx, type);
+        //System.out.println("Line " + ctx.start.getLine() + " has type " + type);
         return null;
     }
 
@@ -137,7 +138,7 @@ public class Annotator extends SolBaseVisitor<Void> {
         else if (ctx.op.getType() == SolParser.NOT)
             finalType = TypeChecker.NotCheck(type);
         if(finalType == Type.ERRO) {
-            sErr.GenericErr(ctx);
+            sErr.unaryOpErr(ctx);
             LineError = true;
         }
             values.put(ctx, finalType);

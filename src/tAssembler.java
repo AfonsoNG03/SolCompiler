@@ -25,7 +25,7 @@ public class tAssembler {
             Annotator annotator = new Annotator();
             annotator.visit(tree);
             ParseTreeProperty<Type> values = annotator.getValues();
-            /*CodeGenVisitor assembler = new CodeGenVisitor(values);
+            CodeGenVisitor assembler = new CodeGenVisitor(values);
             assembler.visit(tree);
             //Error handling
             if (parser.getNumberOfSyntaxErrors() > 0)
@@ -37,7 +37,7 @@ public class tAssembler {
             if (debug){
                 //System.out.println(labels.toString());
                 assembler.print();
-            }*/
+            }
 
         } catch (IOException e) {
             System.out.println(e);

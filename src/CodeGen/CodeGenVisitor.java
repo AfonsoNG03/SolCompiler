@@ -82,7 +82,8 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
         Type type1 = values.get(ctx.inst(0));
         Type type2 = values.get(ctx.inst(1));
         Type finalType;
-        if (type1 == Type.REAL && type2 == Type.REAL)
+        Type tempType = values.get(ctx);
+        if (type1 == Type.REAL || type2 == Type.REAL)
             finalType = Type.REAL;
         else if (type1 == Type.INT && type2 == Type.INT)
             finalType = Type.INT;
@@ -91,7 +92,9 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
         else
             finalType = Type.BOOL;
 
+        values.put(ctx, finalType);
         visitChildren(ctx);
+        values.put(ctx, tempType);
 
         switch (finalType) {
             case Type.INT:
@@ -189,12 +192,12 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     }
 
     @Override public Void visitUnary(SolParser.UnaryContext ctx) {
-        Type type = values.get(ctx);
+        Type type = values.get(ctx.inst());
         visitChildren(ctx);
         if (ctx.op.getType() == SolParser.SUB)
             if (type == Type.INT)
                 emit(OpCode.iuminus);
-            else if (type == Type.REAL)
+            else
                 emit(OpCode.duminus);
         else if (ctx.op.getType() == SolParser.NOT)
             emit(OpCode.not);
