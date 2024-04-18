@@ -51,16 +51,14 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     }
 
     @Override public Void visitOr(SolParser.OrContext ctx) {
-        Type type = values.get(ctx.getParent());
-        values.put(ctx, type);
         visitChildren(ctx);
         emit(OpCode.or);
+        TypeConverter(ctx);
         return null;
     }
 
     @Override public Void visitAddSub(SolParser.AddSubContext ctx) {
-        Type type = values.get(ctx.getParent());
-        values.put(ctx, type);
+        Type type = values.get(ctx);
         visitChildren(ctx);
         if (ctx.op.getType() == SolParser.ADD) {
             if (type == Type.INT)
@@ -75,14 +73,24 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
             else if (type == Type.REAL)
                 emit(OpCode.dsub);
         }
+        TypeConverter(ctx);
         return null;
+
     }
 
     @Override public Void visitEqual(SolParser.EqualContext ctx) {
-        Type type1 = values.get(ctx.getChild(0));
-        Type type2 = values.get(ctx.getChild(2));
-        Type finalType = TypeChecker.equalCheckGenerator(type1, type2);
-        values.put(ctx, finalType);
+        Type type1 = values.get(ctx.inst(0));
+        Type type2 = values.get(ctx.inst(1));
+        Type finalType;
+        if (type1 == Type.REAL && type2 == Type.REAL)
+            finalType = Type.REAL;
+        else if (type1 == Type.INT && type2 == Type.INT)
+            finalType = Type.INT;
+        else if (type1 == Type.STRING && type2 == Type.STRING)
+            finalType = Type.STRING;
+        else
+            finalType = Type.BOOL;
+
         visitChildren(ctx);
 
         switch (finalType) {
@@ -111,33 +119,24 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                     emit(OpCode.bneq);
                 break;
         }
-        if(values.get(ctx.getParent()) == Type.STRING)
-            emit(OpCode.btos);
+        TypeConverter(ctx);
         return null;
     }
 
     @Override public Void visitAnd(SolParser.AndContext ctx) {
-        Type type = values.get(ctx.getParent());
-        values.put(ctx, type);
         visitChildren(ctx);
         emit(OpCode.and);
+        TypeConverter(ctx);
         return null;
     }
 
     @Override public Void visitLiteral(SolParser.LiteralContext ctx) {
-        Type type = values.get(ctx.getParent());
         switch (ctx.op.getType()) {
             case SolParser.INT:
                 emit(OpCode.iconst, Integer.parseInt(ctx.getText()));
-                if (type == Type.REAL)
-                    emit(OpCode.itod);
-                if (type == Type.STRING)
-                    emit(OpCode.itos);
                 break;
             case SolParser.DOUBLE:
                 emit(OpCode.dconst, Double.parseDouble(ctx.getText()));
-                if (type == Type.STRING)
-                    emit(OpCode.dtos);
                 break;
             case SolParser.STRING:
                 String noEscapes = ctx.getText().substring(1, ctx.STRING().getText().length()-1).replace("\\", "");
@@ -145,29 +144,32 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 break;
             case SolParser.TRUE:
                 emit(OpCode.tconst);
-                if (type == Type.STRING)
-                    emit(OpCode.btos);
                 break;
             case SolParser.FALSE:
                 emit(OpCode.fconst);
-                if (type == Type.STRING)
-                    emit(OpCode.btos);
                 break;
         }
+        TypeConverter(ctx);
         return null;
     }
 
     @Override public Void visitRel(SolParser.RelContext ctx) {
-        Type type1 = values.get(ctx.getChild(0));
-        Type type2 = values.get(ctx.getChild(2));
-        Type finalType = TypeChecker.RelOpCheckGenerator(type1, type2);
+        Type type1 = values.get(ctx.inst(0));
+        Type type2 = values.get(ctx.inst(1));
+        Type finalType;
+        Type tempType = values.get(ctx);
+        if (type1 == Type.REAL || type2 == Type.REAL)
+            finalType = Type.REAL;
+        else
+            finalType = Type.INT;
         values.put(ctx, finalType);
         if (ctx.op.getType() == SolParser.GT || ctx.op.getType() == SolParser.GE) {
             visit(ctx.children.getLast());
             visit(ctx.children.getFirst());
         } else
             visitChildren(ctx);
-
+        
+        values.put(ctx, tempType);
         switch (finalType) {
             case Type.INT:
                 if (ctx.op.getType() == SolParser.LT || ctx.op.getType() == SolParser.GT)
@@ -182,15 +184,12 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                     emit(OpCode.dlt);
                 break;
         }
-
-        if (values.get(ctx.getParent()) == Type.STRING)
-            emit(OpCode.btos);
+        TypeConverter(ctx);
         return null;
     }
 
     @Override public Void visitUnary(SolParser.UnaryContext ctx) {
-        Type type = values.get(ctx.getParent());
-        values.put(ctx, type);
+        Type type = values.get(ctx);
         visitChildren(ctx);
         if (ctx.op.getType() == SolParser.SUB)
             if (type == Type.INT)
@@ -199,19 +198,18 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 emit(OpCode.duminus);
         else if (ctx.op.getType() == SolParser.NOT)
             emit(OpCode.not);
+        TypeConverter(ctx);
         return null;
     }
 
     @Override public Void visitParen(SolParser.ParenContext ctx) {
-        Type type = values.get(ctx.getParent());
-        values.put(ctx, type);
         visitChildren(ctx);
+        TypeConverter(ctx);
         return null;
     }
 
     @Override public Void visitMultDiv(SolParser.MultDivContext ctx) {
-        Type type = values.get(ctx.getParent());
-        values.put(ctx, type);
+        Type type = values.get(ctx);
         visitChildren(ctx);
         if (ctx.op.getType() == SolParser.MOD)
             emit(OpCode.imod);
@@ -225,9 +223,34 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 emit(OpCode.idiv);
             else if (type == Type.REAL)
                 emit(OpCode.ddiv);}
+        TypeConverter(ctx);
         return null;
     }
 
+    public void TypeConverter(SolParser.InstContext ctx) {
+        Type type = values.get(ctx);
+        Type Parenttype = values.get(ctx.getParent());
+        if(Parenttype != type) {
+            if (Parenttype == Type.REAL)
+                switch (type) {
+                    case Type.INT:
+                        emit(OpCode.itod);
+                        break;
+                }
+            else if (Parenttype == Type.STRING)
+                switch (type) {
+                    case Type.INT:
+                        emit(OpCode.itos);
+                        break;
+                    case Type.REAL:
+                        emit(OpCode.dtos);
+                        break;
+                    case Type.BOOL:
+                        emit(OpCode.btos);
+                        break;
+                }
+        }
+    }
 
     public void emit(OpCode opCode) {
         instructions.add(new Instruction(opCode));
