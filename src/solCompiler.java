@@ -10,7 +10,7 @@ import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import java.io.*;
 
 
-public class tAssembler {
+public class solCompiler {
     public static void main(String[] args) {
         String inputFile = args.length > 0 ? args[0] : null;
         boolean debug = args.length > 1 ? args[1].equals("-d") : false;
