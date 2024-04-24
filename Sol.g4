@@ -15,6 +15,13 @@ inst : LPAREN inst RPAREN 		        # Paren
   | op=(INT|DOUBLE|STRING|TRUE|FALSE)   # Literal
   ;
 
+
+var : type ID (ASSIGN inst)? SEMICOLON;
+
+type : INT | DOUBLE | STRING | BOOL;
+
+ASSIGN : '=' ;
+ID : [a-zA-Z_][a-zA-Z_0-9]* ;
 MULT: '*' ;
 ADD : '+' ;
 SUB : '-' ;
