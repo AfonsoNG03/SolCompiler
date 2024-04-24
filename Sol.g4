@@ -2,7 +2,9 @@ grammar Sol;
 
 prog : (line | NEWLINE)*;
 
-line : PRINT (inst SEMICOLON NEWLINE | inst SEMICOLON EOF);
+line : PRINT inst SEMICOLON NEWLINE
+  | PRINT inst SEMICOLON EOF
+  | var SEMICOLON NEWLINE | var SEMICOLON EOF;
 
 inst : LPAREN inst RPAREN 		        # Paren
   | op=(SUB|NOT) inst		            # Unary
@@ -16,12 +18,15 @@ inst : LPAREN inst RPAREN 		        # Paren
   ;
 
 
-var : type ID (ASSIGN inst)? SEMICOLON;
+var : type ID (COMMA ID)* (ASSIGN inst)?;
 
-type : INT | DOUBLE | STRING | BOOL;
+type : TYPEINT | TYPEDOUBLE | TYPESTRING | TYPEBOOL;
 
 ASSIGN : '=' ;
-ID : [a-zA-Z_][a-zA-Z_0-9]* ;
+TYPEINT : 'int' ;
+TYPEDOUBLE : 'double' ;
+TYPESTRING : 'string' ;
+TYPEBOOL : 'bool' ;
 MULT: '*' ;
 ADD : '+' ;
 SUB : '-' ;
@@ -46,6 +51,8 @@ STRING: '"' (ESC|.)*? '"' ;
 NEWLINE:'\r'? '\n' ;
 PRINT: 'print';
 SEMICOLON: ';';
+COMMA: ',';
+ID : [a-zA-Z_][a-zA-Z_0-9]* ;
 WS : [ \t\r\n]+ -> skip ;
 SL_COMMENT : '//' .*? (EOF|'\n') -> skip; // single-line comment
 ML_COMMENT : '/*' .*? '*/' -> skip ; // multi-line comment
