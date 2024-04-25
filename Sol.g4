@@ -28,7 +28,7 @@ inst : LPAREN inst RPAREN 		        # Paren
 
 var : type ID (ASSIGN inst)? (COMMA ID (ASSIGN inst)?)* SEMICOLON;
 
-block : BEGIN (line | NEWLINE)* END;
+block : BEGIN line* END;
 
 type : TYPEINT | TYPEDOUBLE | TYPESTRING | TYPEBOOL;
 
