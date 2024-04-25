@@ -26,11 +26,13 @@ inst : LPAREN inst RPAREN 		        # Paren
   ;
 
 
-var : type ID (ASSIGN inst)? (COMMA ID (ASSIGN inst)?)* SEMICOLON;
+assignInst : ID ASSIGN inst | ID;
+
+var : type assignInst? (COMMA (assignInst)?)* SEMICOLON;
 
 block : BEGIN line* END;
 
-type : TYPEINT | TYPEDOUBLE | TYPESTRING | TYPEBOOL;
+type : op=(TYPEINT | TYPEDOUBLE | TYPESTRING | TYPEBOOL);
 
 while : WHILE inst DO line;
 

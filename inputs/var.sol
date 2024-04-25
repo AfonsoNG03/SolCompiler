@@ -1,9 +1,11 @@
-/*
-Exemplo de programa em Sol
-*/
-print 1 + 2 * 3;
-print 1 + 2.0 * 3;
-print 7 % (1 + 4);
-print true and (5 < 3.14159);
-print "pi = " + 3.14159;
-print "ma" + "ria" == "maria";
+int a = 4 + 2;
+real c;
+print b;
+/*int a = "ola", b , c = 1;
+real f;
+string e = 4.3;
+print a;*/
+
+/*int a = true, b , c = 1;
+string e = 4.3;
+print a;*/

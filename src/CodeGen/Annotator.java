@@ -11,8 +11,11 @@ package CodeGen; /***
 import Sol.*;
 import org.antlr.v4.runtime.tree.*;
 
+import java.util.*;
+
 public class Annotator extends SolBaseVisitor<Void> {
     ParseTreeProperty<Type> values = new ParseTreeProperty<Type>();
+    Map<String, Object> vars = new HashMap<>();
     SemanticErrors sErr = new SemanticErrors(values);
     Boolean LineError = false;
 
@@ -25,14 +28,73 @@ public class Annotator extends SolBaseVisitor<Void> {
         return null;
     }
 
-    @Override public Void visitLine(SolParser.LineContext ctx) {
+    @Override public Void visitVar(SolParser.VarContext ctx) {
+        LineError = false;
+        visitChildren(ctx);
+        Type type = values.get(ctx.type());
+        for (SolParser.AssignInstContext assignCtx: ctx.assignInst() ) {
+            Type instType = values.get(assignCtx);
+            if (instType == null)
+                continue;
+            if (instType != type) {
+                sErr.VarErr(ctx, instType);
+                LineError = true;
+                break;
+            }
+        }
+        return null;
+    }
+
+    @Override public Void visitId(SolParser.IdContext ctx) {
+        if (LineError) return null;
+        if (!vars.containsKey(ctx.ID().getText()))
+            sErr.IDErr(ctx);
+        else
+            values.put(ctx, (Type) vars.get(ctx.ID().getText()));
+        return null;
+    }
+
+
+    @Override public Void visitAssignInst(SolParser.AssignInstContext ctx) {
+        if (LineError) return null;
+        visitChildren(ctx);
+        Type type = values.get(ctx.inst());
+        values.put(ctx, type);
+        if (vars.containsKey(ctx.ID().getText())){
+            sErr.AssingErr(ctx);
+        }
+        vars.put(ctx.ID().getText(), type);
+        return null;
+    }
+
+
+    @Override public Void visitType(SolParser.TypeContext ctx) {
+        if (LineError) return null;
+        switch (ctx.op.getType()) {
+            case SolParser.TYPEINT:
+                values.put(ctx, Type.INT);
+                break;
+            case SolParser.TYPEDOUBLE:
+                values.put(ctx, Type.REAL);
+                break;
+            case SolParser.TYPESTRING:
+                values.put(ctx, Type.STRING);
+                break;
+            case SolParser.TYPEBOOL:
+                values.put(ctx, Type.BOOL);
+                break;
+        }
+        return null;
+    }
+
+    /*@Override public Void visitLine(SolParser.LineContext ctx) {
         LineError = false;
         visitChildren(ctx);
         Type type = values.get(ctx.inst());
         values.put(ctx, type);
         //System.out.println("Line " + ctx.start.getLine() + " has type " + type);
         return null;
-    }
+    }*/
 
     @Override public Void visitOr(SolParser.OrContext ctx) {
         visitChildren(ctx);

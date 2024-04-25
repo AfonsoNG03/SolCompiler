@@ -150,6 +150,12 @@ public interface SolVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitMultDiv(SolParser.MultDivContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SolParser#assignInst}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAssignInst(SolParser.AssignInstContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link SolParser#var}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

@@ -246,6 +246,16 @@ public interface SolListener extends ParseTreeListener {
 	 */
 	void exitMultDiv(SolParser.MultDivContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SolParser#assignInst}.
+	 * @param ctx the parse tree
+	 */
+	void enterAssignInst(SolParser.AssignInstContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SolParser#assignInst}.
+	 * @param ctx the parse tree
+	 */
+	void exitAssignInst(SolParser.AssignInstContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SolParser#var}.
 	 * @param ctx the parse tree
 	 */

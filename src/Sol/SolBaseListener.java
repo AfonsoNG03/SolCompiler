@@ -257,6 +257,18 @@ public class SolBaseListener implements SolListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterAssignInst(SolParser.AssignInstContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAssignInst(SolParser.AssignInstContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterVar(SolParser.VarContext ctx) { }
 	/**
 	 * {@inheritDoc}

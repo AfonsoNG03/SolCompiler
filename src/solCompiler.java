@@ -24,7 +24,7 @@ public class solCompiler {
             ParseTree tree = parser.prog();
             Annotator annotator = new Annotator();
             annotator.visit(tree);
-            ParseTreeProperty<Type> values = annotator.getValues();
+            /*ParseTreeProperty<Type> values = annotator.getValues();
             CodeGenVisitor assembler = new CodeGenVisitor(values);
             assembler.visit(tree);
             //Error handling
@@ -37,7 +37,7 @@ public class solCompiler {
             if (debug){
                 //System.out.println(labels.toString());
                 assembler.print();
-            }
+            }*/
 
         } catch (IOException e) {
             System.out.println(e);
