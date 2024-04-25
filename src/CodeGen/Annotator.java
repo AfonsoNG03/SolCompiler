@@ -9,6 +9,7 @@ package CodeGen; /***
 
 
 import Sol.*;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.*;
 
 import java.util.*;
@@ -47,13 +48,32 @@ public class Annotator extends SolBaseVisitor<Void> {
 
     @Override public Void visitId(SolParser.IdContext ctx) {
         if (LineError) return null;
-        if (!vars.containsKey(ctx.ID().getText()))
+        if (!vars.containsKey(ctx.ID().getText())) {
             sErr.IDErr(ctx);
+            LineError = true;
+        }
         else
             values.put(ctx, (Type) vars.get(ctx.ID().getText()));
         return null;
     }
 
+    @Override public Void visitAssign(SolParser.AssignContext ctx) {
+        if (LineError) return null;
+        visitChildren(ctx);
+        Type type = values.get(ctx.inst());
+        Type idType = (Type) vars.get(ctx.ID().getText());
+        if (!vars.containsKey(ctx.ID().getText())){
+            sErr.IDErr(ctx);
+            LineError = true;
+        } else
+            values.put(ctx.ID(), idType);
+        if (type != idType){
+            sErr.VarErr(ctx, type);
+            LineError = true;
+        } else
+            values.put(ctx, type);
+        return null;
+    }
 
     @Override public Void visitAssignInst(SolParser.AssignInstContext ctx) {
         if (LineError) return null;
@@ -63,7 +83,7 @@ public class Annotator extends SolBaseVisitor<Void> {
         if (vars.containsKey(ctx.ID().getText())){
             sErr.AssingErr(ctx);
         }
-        vars.put(ctx.ID().getText(), type);
+        vars.put(ctx.ID().getText(), values.get(ctx.getParent().getChild(0)));
         return null;
     }
 
@@ -95,6 +115,83 @@ public class Annotator extends SolBaseVisitor<Void> {
         //System.out.println("Line " + ctx.start.getLine() + " has type " + type);
         return null;
     }*/
+
+    @Override public Void visitPrint(SolParser.PrintContext ctx) {
+        LineError = false;
+        visitChildren(ctx);
+        Type type = values.get(ctx.inst());
+        values.put(ctx, type);
+        return null;
+    }
+
+    @Override public Void visitBlockCode(SolParser.BlockCodeContext ctx) {
+        LineError = false;
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override public Void visitWhile(SolParser.WhileContext ctx) {
+        LineError = false;
+        visit(ctx.getChild(1));
+        Type type = values.get(ctx.getChild(1));
+        if (type != Type.BOOL) {
+            sErr.WhileErr(ctx);
+        }
+        visit(ctx.getChild(3));
+        return null;
+    }
+
+    @Override public Void visitFor(SolParser.ForContext ctx) {
+        LineError = false;
+        visitChildren(ctx);
+        Type type1 = values.get(ctx.getChild(3));
+        if(!vars.containsKey(ctx.getChild(1).getText())) {
+            sErr.IDErr(ctx);
+            LineError = true;
+        } else {
+            Type type2 = (Type) vars.get(ctx.getChild(1).getText());
+            if (type1 != type2) {
+                sErr.VarErr(ctx, type1);
+                LineError = true;
+            } else if (type1 != Type.INT) {
+                sErr.ForErr(ctx);
+                LineError = true;
+            }
+        }
+        Type type3 = values.get(ctx.getChild(5));
+        if ( type3 != Type.INT)
+            sErr.ForErr(ctx);
+        return null;
+    }
+
+    @Override public Void visitIf(SolParser.IfContext ctx) {
+        LineError = false;
+        visitChildren(ctx);
+        Type type = values.get(ctx.getChild(1));
+        if (type != Type.BOOL) {
+            sErr.IfErr(ctx);
+            LineError = true;
+        }
+        return null;
+    }
+
+    //Check if it is inside of while or for loop
+    @Override public Void visitBreakStatement(SolParser.BreakStatementContext ctx) {
+        LineError = false;
+        ParserRuleContext prog = ctx.getParent();
+        while (true) {
+            if (prog instanceof SolParser.WhileCycleContext || prog instanceof SolParser.ForCycleContext)
+                break;
+            if (prog instanceof SolParser.ProgContext){
+                sErr.BreakErr(ctx);
+                LineError = true;
+                break;
+            }
+            prog = prog.getParent();
+        }
+        return null;
+    }
+
 
     @Override public Void visitOr(SolParser.OrContext ctx) {
         visitChildren(ctx);
