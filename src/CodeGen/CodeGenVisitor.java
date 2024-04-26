@@ -29,7 +29,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     }
 
 
-    /*@Override public Void visitLine(SolParser.LineContext ctx) {
+    @Override public Void visitPrint(SolParser.PrintContext ctx) {
         visitChildren(ctx);
         Type type = values.get(ctx);
         switch (type) {
@@ -48,7 +48,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
         }
 
         return null;
-    }*/
+    }
 
     @Override public Void visitOr(SolParser.OrContext ctx) {
         visitChildren(ctx);
