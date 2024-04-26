@@ -1,8 +1,14 @@
 grammar Sol;
 
-prog : (line | NEWLINE)*;
+prog : (declaration | NEWLINE)* (line | NEWLINE)* EOF;
 
-line : PRINT (inst SEMICOLON NEWLINE | inst SEMICOLON EOF);
+declaration : type ID assign? (',' ID assign?)* SEMICOLON;
+
+assign: '=' (INT|DOUBLE|STRING|TRUE|FALSE);
+
+type : 'bool' | 'real'| 'string' | 'int';
+
+line : PRINT (inst SEMICOLON);
 
 inst : LPAREN inst RPAREN 		        # Paren
   | op=(SUB|NOT) inst		            # Unary
@@ -39,6 +45,7 @@ STRING: '"' (ESC|.)*? '"' ;
 NEWLINE:'\r'? '\n' ;
 PRINT: 'print';
 SEMICOLON: ';';
+ID: [a-zA-Z_] ([a-zA-Z_] | DIGIT)*;
 WS : [ \t\r\n]+ -> skip ;
 SL_COMMENT : '//' .*? (EOF|'\n') -> skip; // single-line comment
 ML_COMMENT : '/*' .*? '*/' -> skip ; // multi-line comment
