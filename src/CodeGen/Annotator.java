@@ -37,6 +37,10 @@ public class Annotator extends SolBaseVisitor<Void> {
             Type instType = values.get(assignCtx);
             if (instType == null)
                 continue;
+            if (type == Type.REAL && instType == Type.INT){
+                vars.put(assignCtx.ID().getText(), Type.REAL);
+                continue;
+            }
             if (instType != type) {
                 sErr.VarErr(ctx, instType);
                 LineError = true;
@@ -67,7 +71,9 @@ public class Annotator extends SolBaseVisitor<Void> {
             LineError = true;
         } else
             values.put(ctx.ID(), idType);
-        if (type != idType){
+        if (idType == Type.REAL && type == Type.INT) {
+            values.put(ctx, Type.REAL);
+        }else if (type != idType){
             sErr.VarErr(ctx, type);
             LineError = true;
         } else
@@ -107,14 +113,12 @@ public class Annotator extends SolBaseVisitor<Void> {
         return null;
     }
 
-    /*@Override public Void visitLine(SolParser.LineContext ctx) {
+    @Override public Void visitInstruction(SolParser.InstructionContext ctx) {
         LineError = false;
         visitChildren(ctx);
-        Type type = values.get(ctx.inst());
-        values.put(ctx, type);
-        //System.out.println("Line " + ctx.start.getLine() + " has type " + type);
         return null;
-    }*/
+    }
+
 
     @Override public Void visitPrint(SolParser.PrintContext ctx) {
         LineError = false;
