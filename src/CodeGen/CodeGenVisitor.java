@@ -25,6 +25,8 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     Map<String, Object> vars;
     private Map<String, Integer> varIndex = new HashMap<>();
 
+    private int breakLine = -1;
+
     private int Ip = 0;
 
     public CodeGenVisitor( ParseTreeProperty<Type> values, Map<String, Object> vars) {
@@ -177,6 +179,9 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
         emit(OpCode.jump, startLine);
         Ip++;
         instructions.set(jumpfLine, new IntInstruction(OpCode.jumpf, Ip));
+        if (breakLine != -1)
+            instructions.set(breakLine, new IntInstruction(OpCode.jump, Ip));
+        breakLine = -1;
         return null;
     }
 
@@ -200,6 +205,9 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
         emit(OpCode.jump, startLine);
         Ip += 5;
         instructions.set(jumpfLine, new IntInstruction(OpCode.jumpf, Ip));
+        if (breakLine != -1)
+            instructions.set(breakLine, new IntInstruction(OpCode.jump, Ip));
+        breakLine = -1;
         return null;
     }
 
@@ -308,7 +316,16 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
             instructions.set(jumpfLine, new IntInstruction(OpCode.jumpf, Ip));
             visit(ctx.line(1));
             instructions.set(jumpLine, new IntInstruction(OpCode.jump, Ip));
+        } else {
+            instructions.set(jumpfLine, new IntInstruction(OpCode.jumpf, Ip));
         }
+        return null;
+    }
+
+    @Override public Void visitBreakStatement(SolParser.BreakStatementContext ctx) {
+        visitChildren(ctx);
+        emit(OpCode.jump, breakLine);
+        breakLine = Ip++;
         return null;
     }
 

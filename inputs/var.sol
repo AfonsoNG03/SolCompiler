@@ -1,9 +1,12 @@
-int a = 0;
-int i;
-
-for i=1 to 10 do
+int i = 0, n = 10;
+real r = 3.24;
+int n;
+bool b = 5;
+string s;
+while s <= n do
 begin
-    a = a + 1;
-    if a == 3 then
-    break;
+print i * i + z;
+i = i + 1;
 end
+break;
+print "Fim!";
