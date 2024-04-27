@@ -34,10 +34,14 @@ public class solCompiler {
                 System.exit(1);
             //
             String outputFile = inputFile != null ? inputFile.substring(0, inputFile.lastIndexOf(".")).concat(".tbc") : "output.tbc";
+            String outputFileTASM = inputFile != null ? inputFile.substring(0, inputFile.lastIndexOf(".")).concat(".tasm") : "output.tasm";
             DataOutputStream dos = new DataOutputStream(new FileOutputStream(outputFile));
             assembler.write(dos);
+            assembler.writeTASM(outputFileTASM);
+            System.out.println("Compilation successful");
+            System.out.println("TBC output file: " + outputFile);
+            System.out.println("Tasm utput file: " + outputFileTASM);
             if (debug){
-                //System.out.println(labels.toString());
                 assembler.print();
             }
 

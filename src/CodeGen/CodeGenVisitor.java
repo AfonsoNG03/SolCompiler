@@ -12,10 +12,12 @@ import Sol.*;
 import org.antlr.v4.runtime.tree.*;
 
 import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.FileWriter;
 
 
 public class CodeGenVisitor extends SolBaseVisitor<Void> {
@@ -418,6 +420,47 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public void writeTASM(String dos) throws IOException {
+        FileWriter writer = null;
+        try {
+            writer = new FileWriter(dos);
+            int i = 0;
+            for (Instruction instr : instructions) {
+
+                writer.write("L" + i++ + ": ");
+                if (instr instanceof IntInstruction) {
+                    if (instr.getOp() == OpCode.jump || instr.getOp() == OpCode.jumpf || instr.getOp() == OpCode.jumpt)
+                        writer.write(instr.getOp() + " L" + ((IntInstruction) instr).getArg() + "\n");
+                    else if (instr.getOp() == OpCode.dconst){
+                        DoubleInstruction a = (DoubleInstruction) constantPool.get(((IntInstruction) instr).getArg());
+                        writer.write(instr.getOp() + " "  + a.getArg() +  "\n");
+                    }
+                    else if (instr.getOp() == OpCode.sconst){
+                        StringInstruction a = (StringInstruction) constantPool.get(((IntInstruction) instr).getArg());
+                        writer.write(instr.getOp() + " " + "\"" + a.getArg() + "\"" + "\n");
+                    }
+                    else
+                        writer.write(instr.getOp() + " " + ((IntInstruction) instr).getArg() + "\n");
+                } else if (instr instanceof DoubleInstruction) {
+                    writer.write(instr.getOp() + " " + ((DoubleInstruction) instr).getArg() + "\n");
+                } else if (instr instanceof StringInstruction) {
+                    writer.write(instr.getOp() + " " + ((StringInstruction) instr).getArg() + "\n");
+                } else if (instr instanceof BooleanInstruction) {
+                    writer.write(instr.getOp() + " " + ((BooleanInstruction) instr).getArg() + "\n");
+                }
+                else {
+                    writer.write(instr.getOp() + "\n");
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }   finally {
+            if (writer != null) {
+                writer.close(); // Close the writer in the finally block
+            }
         }
     }
 

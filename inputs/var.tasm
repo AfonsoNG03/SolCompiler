@@ -1,0 +1,17 @@
+L0: galloc 1
+L1: iconst 11
+L2: gstore 0
+L3: gload 0
+L4: iconst 2
+L5: imod
+L6: iconst 0
+L7: ieq
+L8: jumpf L12
+L9: sconst "par"
+L10: sprint
+L11: jump L14
+L12: sconst "impar"
+L13: sprint
+L14: sconst "Fim!"
+L15: sprint
+L16: halt
