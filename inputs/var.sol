@@ -1,5 +1,9 @@
-int n = 11;
-if n % 2 == 0
-then print "par";
-else print "impar";
-print "Fim!";
+int a = 0;
+int i;
+
+for i=1 to 10 do
+begin
+    a = a + 1;
+    if a == 3 then
+    break;
+end

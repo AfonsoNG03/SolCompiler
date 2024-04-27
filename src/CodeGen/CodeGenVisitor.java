@@ -25,12 +25,20 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     Map<String, Object> vars;
     private Map<String, Integer> varIndex = new HashMap<>();
 
+    private int Ip = 0;
+
     public CodeGenVisitor( ParseTreeProperty<Type> values, Map<String, Object> vars) {
         super();
         this.values = values;
         this.vars = vars;
     }
 
+    @Override public Void visitProg(SolParser.ProgContext ctx) {
+        visitChildren(ctx);
+        emit(OpCode.halt);
+        Ip++;
+        return null;
+    }
 
     @Override public Void visitPrint(SolParser.PrintContext ctx) {
         visitChildren(ctx);
@@ -49,7 +57,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 emit(OpCode.bprint);
                 break;
         }
-
+        Ip++;
         return null;
     }
 
@@ -57,6 +65,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
         visitChildren(ctx);
         emit(OpCode.or);
         TypeConverter(ctx);
+        Ip++;
         return null;
     }
 
@@ -76,6 +85,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
             else if (type == Type.REAL)
                 emit(OpCode.dsub);
         }
+        Ip++;
         TypeConverter(ctx);
         return null;
 
@@ -125,6 +135,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                     emit(OpCode.bneq);
                 break;
         }
+        Ip++;
         TypeConverter(ctx);
         return null;
     }
@@ -132,6 +143,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     @Override public Void visitVar(SolParser.VarContext ctx) {
         int numAssign = ctx.assignInst().size();
         emit(OpCode.galloc, numAssign);
+        Ip++;
         visitChildren(ctx);
         return null;
     }
@@ -139,15 +151,62 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     @Override public Void visitAssignInst(SolParser.AssignInstContext ctx) {
         visitChildren(ctx);
         varIndex.put(ctx.ID().getText(), varIndex.size());
-        if(ctx.inst() != null)
+        if(ctx.inst() != null){
             emit(OpCode.gstore, varIndex.get(ctx.ID().getText()));
+            Ip++;
+        }
         return null;
     }
 
+    @Override public Void visitAssign(SolParser.AssignContext ctx) {
+        visitChildren(ctx);
+        if (varIndex.containsKey(ctx.ID().getText())) {
+            emit(OpCode.gstore, varIndex.get(ctx.ID().getText()));
+            Ip++;
+        }
+        return null;
+    }
+
+    @Override public Void visitWhile(SolParser.WhileContext ctx) {
+        int startLine = Ip;
+        visit(ctx.inst());
+        int jumpfLine = Ip;
+        emit(OpCode.jumpf, -1);
+        Ip++;
+        visit(ctx.line());
+        emit(OpCode.jump, startLine);
+        Ip++;
+        instructions.set(jumpfLine, new IntInstruction(OpCode.jumpf, Ip));
+        return null;
+    }
+
+    @Override public Void visitFor(SolParser.ForContext ctx) {
+        visit(ctx.ID());
+        visit(ctx.inst(0));
+        emit(OpCode.gstore, varIndex.get(ctx.ID().getText()));
+        Ip++;
+        emit(OpCode.gload, varIndex.get(ctx.ID().getText()));
+        int startLine = Ip++;
+        visit(ctx.inst(1));
+        emit(OpCode.ileq);
+        Ip++;
+        emit(OpCode.jumpf, -1);
+        int jumpfLine = Ip++;
+        visit(ctx.line());
+        emit(OpCode.gload, varIndex.get(ctx.ID().getText()));
+        emit(OpCode.iconst, 1);
+        emit(OpCode.iadd);
+        emit(OpCode.gstore, varIndex.get(ctx.ID().getText()));
+        emit(OpCode.jump, startLine);
+        Ip += 5;
+        instructions.set(jumpfLine, new IntInstruction(OpCode.jumpf, Ip));
+        return null;
+    }
 
     @Override public Void visitAnd(SolParser.AndContext ctx) {
         visitChildren(ctx);
         emit(OpCode.and);
+        Ip++;
         TypeConverter(ctx);
         return null;
     }
@@ -171,9 +230,21 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 emit(OpCode.fconst);
                 break;
         }
+        Ip++;
         TypeConverter(ctx);
         return null;
     }
+
+    @Override public Void visitId(SolParser.IdContext ctx) {
+        visitChildren(ctx);
+        if (varIndex.containsKey(ctx.ID().getText())) {
+            emit(OpCode.gload, varIndex.get(ctx.ID().getText()));
+            Ip++;
+        }
+        TypeConverter(ctx);
+        return null;
+    }
+
 
     @Override public Void visitRel(SolParser.RelContext ctx) {
         Type type1 = values.get(ctx.inst(0));
@@ -206,6 +277,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                     emit(OpCode.dlt);
                 break;
         }
+        Ip++;
         TypeConverter(ctx);
         return null;
     }
@@ -220,13 +292,23 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 emit(OpCode.duminus);
         else if (ctx.op.getType() == SolParser.NOT)
             emit(OpCode.not);
+        Ip++;
         TypeConverter(ctx);
         return null;
     }
 
     @Override public Void visitIf(SolParser.IfContext ctx) {
-        visitChildren(ctx);
-        emit(OpCode.jumpf, );
+        visit(ctx.inst());
+        emit(OpCode.jumpf, -1);
+        int jumpfLine = Ip++;
+        visit(ctx.line(0));
+        if (ctx.ELSE() != null) {
+            emit(OpCode.jump, -1);
+            int jumpLine = Ip++;
+            instructions.set(jumpfLine, new IntInstruction(OpCode.jumpf, Ip));
+            visit(ctx.line(1));
+            instructions.set(jumpLine, new IntInstruction(OpCode.jump, Ip));
+        }
         return null;
     }
 
@@ -252,6 +334,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 emit(OpCode.idiv);
             else if (type == Type.REAL)
                 emit(OpCode.ddiv);}
+        Ip++;
         TypeConverter(ctx);
         return null;
     }
@@ -264,9 +347,10 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 switch (type) {
                     case Type.INT:
                         emit(OpCode.itod);
+                        Ip++;
                         break;
                 }
-            else if (Parenttype == Type.STRING)
+            else if (Parenttype == Type.STRING) {
                 switch (type) {
                     case Type.INT:
                         emit(OpCode.itos);
@@ -278,6 +362,8 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                         emit(OpCode.btos);
                         break;
                 }
+                Ip++;
+            }
         }
     }
 
