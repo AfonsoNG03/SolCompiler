@@ -1,4 +1,5 @@
-real a ;
-real b = 1;
-
-a = 3;
+int n = 11;
+if n % 2 == 0
+then print "par";
+else print "impar";
+print "Fim!";

@@ -337,4 +337,8 @@ public class Annotator extends SolBaseVisitor<Void> {
     public ParseTreeProperty<Type> getValues() {
         return values;
     }
+
+    public Map<String, Object> getVars() {
+        return vars;
+    }
 }

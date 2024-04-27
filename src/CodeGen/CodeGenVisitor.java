@@ -22,10 +22,13 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     private ArrayList<Instruction> instructions = new ArrayList<>();
     private ArrayList<Instruction> constantPool = new ArrayList<>();
     ParseTreeProperty<Type> values;
+    Map<String, Object> vars;
+    private Map<String, Integer> varIndex = new HashMap<>();
 
-    public CodeGenVisitor( ParseTreeProperty<Type> values) {
+    public CodeGenVisitor( ParseTreeProperty<Type> values, Map<String, Object> vars) {
         super();
         this.values = values;
+        this.vars = vars;
     }
 
 
@@ -126,6 +129,22 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
         return null;
     }
 
+    @Override public Void visitVar(SolParser.VarContext ctx) {
+        int numAssign = ctx.assignInst().size();
+        emit(OpCode.galloc, numAssign);
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override public Void visitAssignInst(SolParser.AssignInstContext ctx) {
+        visitChildren(ctx);
+        varIndex.put(ctx.ID().getText(), varIndex.size());
+        if(ctx.inst() != null)
+            emit(OpCode.gstore, varIndex.get(ctx.ID().getText()));
+        return null;
+    }
+
+
     @Override public Void visitAnd(SolParser.AndContext ctx) {
         visitChildren(ctx);
         emit(OpCode.and);
@@ -205,6 +224,13 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
         return null;
     }
 
+    @Override public Void visitIf(SolParser.IfContext ctx) {
+        visitChildren(ctx);
+        emit(OpCode.jumpf, );
+        return null;
+    }
+
+
     @Override public Void visitParen(SolParser.ParenContext ctx) {
         visitChildren(ctx);
         TypeConverter(ctx);
@@ -254,6 +280,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 }
         }
     }
+
 
     public void emit(OpCode opCode) {
         instructions.add(new Instruction(opCode));

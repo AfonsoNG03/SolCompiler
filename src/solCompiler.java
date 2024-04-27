@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 import java.io.*;
+import java.util.Map;
 
 
 public class solCompiler {
@@ -24,8 +25,9 @@ public class solCompiler {
             ParseTree tree = parser.prog();
             Annotator annotator = new Annotator();
             annotator.visit(tree);
-            /*ParseTreeProperty<Type> values = annotator.getValues();
-            CodeGenVisitor assembler = new CodeGenVisitor(values);
+            ParseTreeProperty<Type> values = annotator.getValues();
+            Map<String, Object> vars = annotator.getVars();
+            CodeGenVisitor assembler = new CodeGenVisitor(values, vars);
             assembler.visit(tree);
             //Error handling
             if (parser.getNumberOfSyntaxErrors() > 0)
@@ -37,7 +39,7 @@ public class solCompiler {
             if (debug){
                 //System.out.println(labels.toString());
                 assembler.print();
-            }*/
+            }
 
         } catch (IOException e) {
             System.out.println(e);
