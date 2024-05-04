@@ -1,2 +1,4 @@
 int x;
-int x;  // x já foi declarado
+int x;  
+
+print x;

@@ -1,2 +1,3 @@
-int x;
-int y = x + 1;
+int x = 5;
+while x do
+    print "Loop";

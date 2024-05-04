@@ -28,7 +28,7 @@ inst : LPAREN inst RPAREN 		        # Paren
 
 assignInst : ID ASSIGN inst | ID;
 
-var : type assignInst? (COMMA (assignInst)?)* SEMICOLON;
+var : type assignInst (COMMA (assignInst)?)* SEMICOLON;
 
 block : BEGIN line* END;
 

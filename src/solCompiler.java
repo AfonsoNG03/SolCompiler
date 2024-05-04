@@ -23,16 +23,16 @@ public class solCompiler {
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             SolParser parser = new SolParser(tokens);
             ParseTree tree = parser.prog();
+            //Error handling
+            if (parser.getNumberOfSyntaxErrors() > 0)
+                System.exit(1);
+            //
             Annotator annotator = new Annotator();
             annotator.visit(tree);
             ParseTreeProperty<Type> values = annotator.getValues();
             Map<String, Object> vars = annotator.getVars();
             CodeGenVisitor assembler = new CodeGenVisitor(values, vars);
             assembler.visit(tree);
-            //Error handling
-            if (parser.getNumberOfSyntaxErrors() > 0)
-                System.exit(1);
-            //
             String outputFile = inputFile != null ? inputFile.substring(0, inputFile.lastIndexOf(".")).concat(".tbc") : "output.tbc";
             String outputFileTASM = inputFile != null ? inputFile.substring(0, inputFile.lastIndexOf(".")).concat(".tasm") : "output.tasm";
             DataOutputStream dos = new DataOutputStream(new FileOutputStream(outputFile));
