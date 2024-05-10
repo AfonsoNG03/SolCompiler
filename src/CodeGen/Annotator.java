@@ -17,6 +17,7 @@ import java.util.*;
 public class Annotator extends SolBaseVisitor<Void> {
     ParseTreeProperty<Type> values = new ParseTreeProperty<Type>();
     Map<String, Object> vars = new HashMap<>();
+    Map<String, Object> functions = new HashMap<>();
     SemanticErrors sErr = new SemanticErrors(values);
     Boolean LineError = false;
 
@@ -28,6 +29,27 @@ public class Annotator extends SolBaseVisitor<Void> {
         }
         return null;
     }
+
+    @Override public Void visitFunctionCallExpression(SolParser.FunctionCallExpressionContext ctx) {
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override public Void visitFunction(SolParser.FunctionContext ctx) {
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override public Void visitReturn(SolParser.ReturnContext ctx) {
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override public Void visitFunctionCall(SolParser.FunctionCallContext ctx) {
+        visitChildren(ctx);
+        return null;
+    }
+
 
     @Override public Void visitVar(SolParser.VarContext ctx) {
         LineError = false;
@@ -108,6 +130,28 @@ public class Annotator extends SolBaseVisitor<Void> {
                 break;
             case SolParser.TYPEBOOL:
                 values.put(ctx, Type.BOOL);
+                break;
+        }
+        return null;
+    }
+
+    @Override public Void visitTypeFunction(SolParser.TypeFunctionContext ctx) {
+        if (LineError) return null;
+        switch (ctx.op.getType()) {
+            case SolParser.TYPEINT:
+                values.put(ctx, Type.INT);
+                break;
+            case SolParser.TYPEDOUBLE:
+                values.put(ctx, Type.REAL);
+                break;
+            case SolParser.TYPESTRING:
+                values.put(ctx, Type.STRING);
+                break;
+            case SolParser.TYPEBOOL:
+                values.put(ctx, Type.BOOL);
+                break;
+            case SolParser.TYPEVOID:
+                values.put(ctx, Type.VOID);
                 break;
         }
         return null;

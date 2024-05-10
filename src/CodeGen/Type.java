@@ -1,6 +1,6 @@
 package CodeGen;
 
 public enum Type {
-    INT, REAL, STRING, BOOL, ERRO;
+    INT, REAL, STRING, BOOL, ERRO, VOID;
 
 }
