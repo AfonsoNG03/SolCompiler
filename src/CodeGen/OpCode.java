@@ -10,7 +10,7 @@ public enum OpCode {
     galloc(1), gload(1), gstore(1),
     itos(0), itod(0), dtos(0), btos(0),
     halt(0), end(0),
-    label(1);
+    label(1), lalloc(1), lload(1), lstore(1), pop(1), call(1), retval(1), ret(1);
 
     private final int nArgs;
 

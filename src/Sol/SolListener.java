@@ -18,6 +18,16 @@ public interface SolListener extends ParseTreeListener {
 	 */
 	void exitProg(SolParser.ProgContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SolParser#function}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunction(SolParser.FunctionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SolParser#function}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunction(SolParser.FunctionContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code Print}
 	 * labeled alternative in {@link SolParser#line}.
 	 * @param ctx the parse tree
@@ -29,6 +39,18 @@ public interface SolListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPrint(SolParser.PrintContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code FunctionCallExpression}
+	 * labeled alternative in {@link SolParser#line}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunctionCallExpression(SolParser.FunctionCallExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code FunctionCallExpression}
+	 * labeled alternative in {@link SolParser#line}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunctionCallExpression(SolParser.FunctionCallExpressionContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code Instruction}
 	 * labeled alternative in {@link SolParser#line}.
@@ -114,6 +136,18 @@ public interface SolListener extends ParseTreeListener {
 	 */
 	void exitEmpty(SolParser.EmptyContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code Return}
+	 * labeled alternative in {@link SolParser#inst}.
+	 * @param ctx the parse tree
+	 */
+	void enterReturn(SolParser.ReturnContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code Return}
+	 * labeled alternative in {@link SolParser#inst}.
+	 * @param ctx the parse tree
+	 */
+	void exitReturn(SolParser.ReturnContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code Or}
 	 * labeled alternative in {@link SolParser#inst}.
 	 * @param ctx the parse tree
@@ -137,6 +171,30 @@ public interface SolListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitAddSub(SolParser.AddSubContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code Unary}
+	 * labeled alternative in {@link SolParser#inst}.
+	 * @param ctx the parse tree
+	 */
+	void enterUnary(SolParser.UnaryContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code Unary}
+	 * labeled alternative in {@link SolParser#inst}.
+	 * @param ctx the parse tree
+	 */
+	void exitUnary(SolParser.UnaryContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code MultDiv}
+	 * labeled alternative in {@link SolParser#inst}.
+	 * @param ctx the parse tree
+	 */
+	void enterMultDiv(SolParser.MultDivContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code MultDiv}
+	 * labeled alternative in {@link SolParser#inst}.
+	 * @param ctx the parse tree
+	 */
+	void exitMultDiv(SolParser.MultDivContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code Equal}
 	 * labeled alternative in {@link SolParser#inst}.
@@ -210,17 +268,17 @@ public interface SolListener extends ParseTreeListener {
 	 */
 	void exitId(SolParser.IdContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code Unary}
+	 * Enter a parse tree produced by the {@code FunctionCall}
 	 * labeled alternative in {@link SolParser#inst}.
 	 * @param ctx the parse tree
 	 */
-	void enterUnary(SolParser.UnaryContext ctx);
+	void enterFunctionCall(SolParser.FunctionCallContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code Unary}
+	 * Exit a parse tree produced by the {@code FunctionCall}
 	 * labeled alternative in {@link SolParser#inst}.
 	 * @param ctx the parse tree
 	 */
-	void exitUnary(SolParser.UnaryContext ctx);
+	void exitFunctionCall(SolParser.FunctionCallContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code Paren}
 	 * labeled alternative in {@link SolParser#inst}.
@@ -233,18 +291,6 @@ public interface SolListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitParen(SolParser.ParenContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code MultDiv}
-	 * labeled alternative in {@link SolParser#inst}.
-	 * @param ctx the parse tree
-	 */
-	void enterMultDiv(SolParser.MultDivContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code MultDiv}
-	 * labeled alternative in {@link SolParser#inst}.
-	 * @param ctx the parse tree
-	 */
-	void exitMultDiv(SolParser.MultDivContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SolParser#assignInst}.
 	 * @param ctx the parse tree
@@ -285,6 +331,16 @@ public interface SolListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitType(SolParser.TypeContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SolParser#typeFunction}.
+	 * @param ctx the parse tree
+	 */
+	void enterTypeFunction(SolParser.TypeFunctionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SolParser#typeFunction}.
+	 * @param ctx the parse tree
+	 */
+	void exitTypeFunction(SolParser.TypeFunctionContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SolParser#while}.
 	 * @param ctx the parse tree

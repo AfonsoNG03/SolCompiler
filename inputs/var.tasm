@@ -1,17 +1,61 @@
-L0: galloc 1
-L1: iconst 11
-L2: gstore 0
-L3: gload 0
-L4: iconst 2
-L5: imod
-L6: iconst 0
-L7: ieq
-L8: jumpf L12
-L9: sconst "par"
-L10: sprint
-L11: jump L14
-L12: sconst "impar"
-L13: sprint
-L14: sconst "Fim!"
-L15: sprint
-L16: halt
+L0: galloc 3
+L1: iconst 70
+L2: gstore 2
+L3: galloc 1
+L4: galloc 1
+L5: sconst ""
+L6: gstore 4
+L7: iconst 1
+L8: gstore 0
+L9: gload 0
+L10: gload 2
+L11: ileq
+L12: jumpf L51
+L13: tconst
+L14: gstore 3
+L15: iconst 2
+L16: gstore 1
+L17: gload 1
+L18: gload 0
+L19: iconst 2
+L20: idiv
+L21: ileq
+L22: jumpf L37
+L23: gload 0
+L24: gload 1
+L25: imod
+L26: iconst 0
+L27: ieq
+L28: jumpf L32
+L29: fconst
+L30: gstore 3
+L31: jump L37
+L32: gload 1
+L33: iconst 1
+L34: iadd
+L35: gstore 1
+L36: jump L17
+L37: gload 3
+L38: jumpf L46
+L39: gload 4
+L40: sconst " "
+L41: sadd
+L42: gload 0
+L43: itos
+L44: sadd
+L45: gstore 4
+L46: gload 0
+L47: iconst 1
+L48: iadd
+L49: gstore 0
+L50: jump L9
+L51: sconst "Prime numbers upto "
+L52: gload 2
+L53: itos
+L54: sadd
+L55: sconst ":"
+L56: sadd
+L57: gload 4
+L58: sadd
+L59: sprint
+L60: halt

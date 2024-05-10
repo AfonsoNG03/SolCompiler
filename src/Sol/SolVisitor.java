@@ -17,12 +17,25 @@ public interface SolVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitProg(SolParser.ProgContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link SolParser#function}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFunction(SolParser.FunctionContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code Print}
 	 * labeled alternative in {@link SolParser#line}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitPrint(SolParser.PrintContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code FunctionCallExpression}
+	 * labeled alternative in {@link SolParser#line}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFunctionCallExpression(SolParser.FunctionCallExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code Instruction}
 	 * labeled alternative in {@link SolParser#line}.
@@ -73,6 +86,13 @@ public interface SolVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitEmpty(SolParser.EmptyContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code Return}
+	 * labeled alternative in {@link SolParser#inst}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReturn(SolParser.ReturnContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code Or}
 	 * labeled alternative in {@link SolParser#inst}.
 	 * @param ctx the parse tree
@@ -86,6 +106,20 @@ public interface SolVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitAddSub(SolParser.AddSubContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code Unary}
+	 * labeled alternative in {@link SolParser#inst}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUnary(SolParser.UnaryContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code MultDiv}
+	 * labeled alternative in {@link SolParser#inst}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMultDiv(SolParser.MultDivContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code Equal}
 	 * labeled alternative in {@link SolParser#inst}.
@@ -129,12 +163,12 @@ public interface SolVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitId(SolParser.IdContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code Unary}
+	 * Visit a parse tree produced by the {@code FunctionCall}
 	 * labeled alternative in {@link SolParser#inst}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitUnary(SolParser.UnaryContext ctx);
+	T visitFunctionCall(SolParser.FunctionCallContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code Paren}
 	 * labeled alternative in {@link SolParser#inst}.
@@ -142,13 +176,6 @@ public interface SolVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitParen(SolParser.ParenContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code MultDiv}
-	 * labeled alternative in {@link SolParser#inst}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitMultDiv(SolParser.MultDivContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SolParser#assignInst}.
 	 * @param ctx the parse tree
@@ -173,6 +200,12 @@ public interface SolVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitType(SolParser.TypeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link SolParser#typeFunction}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTypeFunction(SolParser.TypeFunctionContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link SolParser#while}.
 	 * @param ctx the parse tree

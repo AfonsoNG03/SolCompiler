@@ -8,6 +8,7 @@ public class ByteReader {
     ArrayList<Instruction> code;
     byte[] byteCode;
     int IP;
+    int FP;
     boolean hasHalt;
     Stack<Object> stack;
     ArrayList<Object> global;
@@ -20,6 +21,7 @@ public class ByteReader {
         this.code = new ArrayList<>();
         this.stack = new Stack<>();
         this.IP = 0;
+        this.FP = 0;
         this.global = new ArrayList<>();
         this.hasHalt = false;
         this.trace = trace;
@@ -426,6 +428,66 @@ public class ByteReader {
                 if (!(stack.peek() instanceof Boolean))
                     new ErrorHandler("line " + IP + " ERROR: Invalid type at top of stack: Must be Boolean!");
                 stack.push(Boolean.toString((boolean) stack.pop()));
+                break;
+            case lalloc:
+                if (((IntInstruction) inst).getArg() <= 0)
+                    new ErrorHandler("ERROR: Invalid number of slots for local allocation");
+                for (int j = 0; j < ((IntInstruction) inst).getArg(); j++) {
+                    stack.push(null);
+                }
+                break;
+            case lload:
+                if (((IntInstruction) inst).getArg() + FP >= stack.size() || ((IntInstruction) inst).getArg() + FP < 0)
+                    new ErrorHandler("ERROR: Invalid local address");
+                stack.push(stack.elementAt(FP + ((IntInstruction) inst).getArg()));
+                break;
+            case lstore:
+                if (((IntInstruction) inst).getArg() + FP >= stack.size() || ((IntInstruction) inst).getArg() + FP < 0)
+                    new ErrorHandler("ERROR: Invalid local address");
+                stack.add(FP + ((IntInstruction) inst).getArg(), stack.pop());
+                break;
+            case pop:
+                if (((IntInstruction) inst).getArg() <= 0)
+                    new ErrorHandler("ERROR: Invalid number of elements to pop");
+                for (int j = 0; j < ((IntInstruction) inst).getArg(); j++) {
+                    if (stack.empty())
+                        new ErrorHandler("ERROR: Empty stack");
+                    stack.pop();
+                }
+                break;
+            case call:
+                stack.push(FP);
+                FP = stack.size();
+                stack.push(IP);
+                IP = ((IntInstruction) inst).getArg();
+                break;
+            case retval:
+                int desempilhar = ((IntInstruction) inst).getArg();
+                Object x = stack.pop();
+                while (stack.size() > FP+2) {
+                    stack.pop();
+                }
+                Object returnAddress = stack.pop();
+                IP = (int) returnAddress;
+                Object FpValue = stack.pop();
+                FP = (int) FpValue;
+                for ( int i=0; i<desempilhar; i++){
+                    stack.pop();
+                }
+                stack.push(x);
+                break;
+            case ret:
+                int desempilhar2 = ((IntInstruction) inst).getArg();
+                while (stack.size() > FP+2) {
+                    stack.pop();
+                }
+                Object returnAddress2 = stack.pop();
+                IP = (int) returnAddress2;
+                Object FpValue2 = stack.pop();
+                FP = (int) FpValue2;
+                for ( int i=0; i<desempilhar2; i++){
+                    stack.pop();
+                }
                 break;
             case halt:
                 IP = code.size();

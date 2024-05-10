@@ -1,28 +1,33 @@
 grammar Sol;
 
-prog : var* line+;
+prog : var* function+;
 
-line : PRINT inst SEMICOLON     # Print
-  | inst SEMICOLON              # Instruction
-  | block                       # BlockCode
-  | while                       # WhileCycle
-  | for                         # ForCycle
-  | if                          # IfStatement
-  | BREAK SEMICOLON             # BreakStatement
-  | SEMICOLON                   # Empty
+function : typeFunction ID LPAREN (type ID (COMMA type ID)*)? RPAREN block;
+
+line : PRINT inst SEMICOLON                             # Print
+  | ID LPAREN (inst (COMMA inst)*)? RPAREN SEMICOLON    # FunctionCallExpression
+  | inst SEMICOLON                                      # Instruction
+  | block                                               # BlockCode
+  | while                                               # WhileCycle
+  | for                                                 # ForCycle
+  | if                                                  # IfStatement
+  | BREAK SEMICOLON                                     # BreakStatement
+  | SEMICOLON                                           # Empty
   ;
 
-inst : LPAREN inst RPAREN 		        # Paren
-  | op=(SUB|NOT) inst		            # Unary
-  | inst op=(MULT|DIV|MOD) inst         # MultDiv
-  | inst op=(ADD|SUB) inst 		        # AddSub
-  | inst op=(LT|LE|GT|GE) inst	        # Rel
-  | inst op=(EQ|NEQ) inst		        # Equal
-  | inst op=AND inst			        # And
-  | inst op=OR inst                     # Or
-  | op=(INT|DOUBLE|STRING|TRUE|FALSE)   # Literal
-  | ID ASSIGN inst			            # Assign
-  | ID				                    # Id
+inst : LPAREN inst RPAREN 		            # Paren
+  | op=(SUB|NOT) inst		                # Unary
+  | inst op=(MULT|DIV|MOD) inst             # MultDiv
+  | inst op=(ADD|SUB) inst 		            # AddSub
+  | inst op=(LT|LE|GT|GE) inst	            # Rel
+  | inst op=(EQ|NEQ) inst		            # Equal
+  | inst op=AND inst			            # And
+  | inst op=OR inst                         # Or
+  | op=(INT|DOUBLE|STRING|TRUE|FALSE)       # Literal
+  | ID ASSIGN inst			                # Assign
+  | ID				                        # Id
+  | ID LPAREN (inst (COMMA inst)*)? RPAREN	# FunctionCall
+  | RETURN inst?			                # Return
   ;
 
 
@@ -30,9 +35,11 @@ assignInst : ID ASSIGN inst | ID;
 
 var : type assignInst (COMMA assignInst)* SEMICOLON;
 
-block : BEGIN line* END;
+block : BEGIN  var* line* END;
 
 type : op=(TYPEINT | TYPEDOUBLE | TYPESTRING | TYPEBOOL);
+
+typeFunction : op=(TYPEINT | TYPEDOUBLE | TYPESTRING | TYPEBOOL | TYPEVOID);
 
 while : WHILE inst DO line;
 
@@ -40,6 +47,7 @@ for : FOR ID ASSIGN inst TO inst DO line;
 
 if : IF inst THEN line (ELSE line)?;
 
+TYPEVOID : 'void' ;
 ASSIGN : '=' ;
 BREAK : 'break' ;
 IF : 'if' ;
@@ -77,6 +85,7 @@ INT : DIGIT+ ;
 DOUBLE : DIGIT+ '.' DIGIT* | '.' DIGIT+;
 STRING: '"' (ESC|.)*? '"' ;
 PRINT: 'print';
+RETURN: 'return';
 SEMICOLON: ';';
 COMMA: ',';
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;
