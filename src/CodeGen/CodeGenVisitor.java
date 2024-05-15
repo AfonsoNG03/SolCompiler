@@ -25,6 +25,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     private ArrayList<Instruction> constantPool = new ArrayList<>();
     ParseTreeProperty<Type> values;
     Map<String, Object> vars;
+    Map<String, Object> functions;
     private Map<String, Integer> varIndex = new HashMap<>();
 
     private int breakLine = -1;
@@ -41,6 +42,30 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
         visitChildren(ctx);
         emit(OpCode.halt);
         Ip++;
+        return null;
+    }
+
+    @Override public Void visitFunctionCallExpression(SolParser.FunctionCallExpressionContext ctx) {
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override public Void visitFunction(SolParser.FunctionContext ctx) {
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override public Void visitReturn(SolParser.ReturnContext ctx) {
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override public Void visitFunctionCall(SolParser.FunctionCallContext ctx) {
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override public Void visitTypeFunction(SolParser.TypeFunctionContext ctx) {
         return null;
     }
 
