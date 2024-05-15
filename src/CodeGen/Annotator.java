@@ -54,9 +54,11 @@ public class Annotator extends SolBaseVisitor<Void> {
         }
         currentScope.define(fs);
         currentScope = functionScope;
+        for (Symbol a : fs.get_arguments())
+            currentScope.define(a);
         visitBlock(ctx.block());
         if (!hasReturn && Return != Type.VOID)
-            sErr.TesteErro("Funções sem return");
+            sErr.TesteErro("Function " + ctx.ID(0).getText() + " has no return statement");
         currentScope = Global;
         hasReturn = false;
         return null;
@@ -65,6 +67,9 @@ public class Annotator extends SolBaseVisitor<Void> {
     @Override public Void visitReturn(SolParser.ReturnContext ctx) {
         visitChildren(ctx);
         hasReturn = true;
+        if (Return == Type.REAL && values.get(ctx.inst()) == Type.INT) {
+            return null;
+        }
         if (Return != values.get(ctx.inst())) {
             sErr.GenericErr(ctx);
             //LineError = true;
@@ -112,7 +117,7 @@ public class Annotator extends SolBaseVisitor<Void> {
         else
             values.put(ctx, (Type) vars.get(ctx.ID().getText()));*/
         Symbol currentFunction = currentScope.resolve(currentScope.getName());
-        if (currentFunction != null) {
+        if (currentFunction != null && currentFunction instanceof FunctionSymbol) {
             FunctionSymbol fs = (FunctionSymbol) currentFunction;
             for (Symbol s : fs.get_arguments()) {
                 if (s.lexeme().equals(ctx.ID().getText())) {
@@ -124,7 +129,9 @@ public class Annotator extends SolBaseVisitor<Void> {
         if (currentScope.resolve(ctx.ID().getText()) == null) {
             sErr.IDErr(ctx);
             //LineError = true;
-        } else {
+        } else if(currentScope.resolve(ctx.ID().getText()) instanceof FunctionSymbol){
+            sErr.TesteErro(ctx.ID().getText() + " é uma função");
+        }else {
             Symbol s = currentScope.resolve(ctx.ID().getText());
             values.put(ctx, s.getType());
         }
@@ -134,9 +141,11 @@ public class Annotator extends SolBaseVisitor<Void> {
     @Override public Void visitAssign(SolParser.AssignContext ctx) {
         if (LineError) return null;
         visitChildren(ctx);
+        if(ctx.inst() instanceof SolParser.FunctionCallContext)
+            return null;
         Type type = values.get(ctx.inst());
         Symbol currentFunction = currentScope.resolve(currentScope.getName());
-        if (currentFunction != null) {
+        if (currentFunction != null && currentFunction instanceof FunctionSymbol) {
             FunctionSymbol fs = (FunctionSymbol) currentFunction;
             for (Symbol s : fs.get_arguments()) {
                 if (s.lexeme().equals(ctx.ID().getText())) {
@@ -192,6 +201,11 @@ public class Annotator extends SolBaseVisitor<Void> {
         //if (vars.containsKey(ctx.ID().getText())){
             //sErr.AssingErr(ctx);
         //}
+        if (currentScope.resolve(ctx.ID().getText()) != null) {
+            sErr.AssingErr(ctx);
+            return null;
+        }
+
         if (parentType == Type.REAL && type == Type.INT){
             //vars.put(ctx.ID().getText(), Type.REAL);
             currentScope.define(new SymbolTable.VariableSymbol(ctx.ID().getSymbol(), Type.REAL));

@@ -38,7 +38,7 @@ public class solCompiler {
             Scope scope = annotator.getCurrentScope();
             Map<String, Symbol> scopes = scope.getSymbols();
             List<Scope> children = scope.getChildScopes();
-            System.out.println(scope.toString());
+            /*System.out.println(scope.toString());
             for (Map.Entry<String, Symbol> entry : scopes.entrySet()) {
                 System.out.println(entry.getValue().toString());
             }
@@ -50,7 +50,7 @@ public class solCompiler {
                     System.out.println(entry.getValue().toString());
                 }
                 System.out.println();
-            }
+            }*/
             FunctionSemantics functionSemantics = new FunctionSemantics(scope, values);
             functionSemantics.visit(tree);
             /*CodeGenVisitor assembler = new CodeGenVisitor(values, vars);

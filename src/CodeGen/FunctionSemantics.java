@@ -65,7 +65,14 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
     }
 
     @Override public Void visitFunction(SolParser.FunctionContext ctx) {
+        Scope GlobalScope = currentScope;
+        for (Scope child: currentScope.getChildScopes()) {
+            if (child.getName().equals(ctx.ID(0).getText())) {
+                currentScope = child;
+            }
+        }
         visitChildren(ctx);
+        currentScope = GlobalScope;
         return null;
     }
 
@@ -75,7 +82,28 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
     }
 
     @Override public Void visitFunctionCall(SolParser.FunctionCallContext ctx) {
-        visitChildren(ctx);
+        FunctionSymbol function;
+        if (currentScope.resolve(ctx.ID().getText()) == null) {
+            sErr.TesteErro("Function " + ctx.ID().getText() + " not found");
+        } else {
+            Symbol functionTemp = currentScope.resolve(ctx.ID().getText());
+            if (!(functionTemp instanceof FunctionSymbol)) {
+                sErr.TesteErro(ctx.ID().getText() + " is not a function");
+                return null;
+            } else
+                function = (FunctionSymbol) functionTemp;
+            if (function.get_arguments().size() != ctx.inst().size()) {
+                sErr.TesteErro("Function " + ctx.ID().getText() + " has " + function.get_arguments().size() + " parameters");
+            } else {
+                for (int i = 0; i < ctx.inst().size(); i++) {
+                    Type type = values.get(ctx.inst(i));
+                    if (!type.equals(function.get_arguments().get(i).getType())) {
+                        sErr.TesteErro("Function " + ctx.ID().getText() + " parameter " + i + " is of type " + function.get_arguments().get(i).getType());
+                    }
+                }
+            }
+            values.put(ctx, function.getType());
+        }
         return null;
     }
 
@@ -91,7 +119,19 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
 
     @Override public Void visitAssign(SolParser.AssignContext ctx) {
         visitChildren(ctx);
-        return null;
+        Symbol s = null;
+        if(ctx.inst() instanceof SolParser.FunctionCallContext)
+            s = currentScope.resolve(ctx.ID().getText());
+        if (s == null) {
+            return null;
+        }
+        else if(s.getType() == Type.REAL && values.get(ctx.inst()) == Type.INT){
+            values.put(ctx, Type.REAL);
+        }
+        else if(s.getType() != values.get(ctx.inst())){
+            sErr.TesteErro("Type mismatch");
+        }
+            return null;
     }
 
     @Override public Void visitAssignInst(SolParser.AssignInstContext ctx) {

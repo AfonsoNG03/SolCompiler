@@ -1,29 +1,30 @@
-int a;
+/*void mainnn()
+begin
+int n = fun(1,2,3);
+fun(1,2);
+hello("Maria");
+hello(5);
+end
 
 void hello( string s )
-begin
-    s = "world";
-    print "Hello " + s;
-end
+ begin
+ print "Hello " + s;
+ end
 
-void main()
-begin
-    int x;
-    x = 5;
-    print x;
-    hello( "world");
-    //x = max( 3, 4 );
-    print x;
-end
+ real zzz( int x )
+ begin
+ return x + 1;
+ end
 
-int max( int a, int b )
-begin
-    int y, z;
-    real e = 5;
-    y = 2;
-    if a > b then
-        z = 5;
-    else
-        z = 6;
-    return z;
+ bool xpto()
+ begin
+ print "ola";
+ end
+*/
+ int fun( int x, int y )
+ begin
+bool b = xpto;
+if x < 1 then return x + y;
+else
+return 1;
 end
