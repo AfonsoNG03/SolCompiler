@@ -1,6 +1,8 @@
 import CodeGen.*;
 import Sol.SolLexer;
 import Sol.SolParser;
+import SymbolTable.Scope;
+import SymbolTable.Symbol;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -8,6 +10,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
 import java.io.*;
+import java.security.Key;
+import java.util.List;
 import java.util.Map;
 
 
@@ -31,7 +35,23 @@ public class solCompiler {
             annotator.visit(tree);
             ParseTreeProperty<Type> values = annotator.getValues();
             Map<String, Object> vars = annotator.getVars();
-            CodeGenVisitor assembler = new CodeGenVisitor(values, vars);
+            Scope scope = annotator.getCurrentScope();
+            Map<String, Symbol> scopes = scope.getSymbols();
+            List<Scope> children = scope.getChildScopes();
+            System.out.println(scope.toString());
+            for (Map.Entry<String, Symbol> entry : scopes.entrySet()) {
+                System.out.println(entry.getValue().toString());
+            }
+            System.out.println();
+            for (Scope child : children) {
+                System.out.println(child.toString());
+                scopes = child.getSymbols();
+                for (Map.Entry<String, Symbol> entry : scopes.entrySet()) {
+                    System.out.println(entry.getValue().toString());
+                }
+                System.out.println();
+            }
+            /*CodeGenVisitor assembler = new CodeGenVisitor(values, vars);
             assembler.visit(tree);
             String outputFile = inputFile != null ? inputFile.substring(0, inputFile.lastIndexOf(".")).concat(".tbc") : "output.tbc";
             String outputFileTASM = inputFile != null ? inputFile.substring(0, inputFile.lastIndexOf(".")).concat(".tasm") : "output.tasm";
@@ -44,7 +64,7 @@ public class solCompiler {
             if (debug){
                 assembler.print();
             }
-
+            */
         } catch (IOException e) {
             System.out.println(e);
         }

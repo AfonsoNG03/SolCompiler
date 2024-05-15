@@ -9,6 +9,9 @@ package CodeGen; /***
 
 
 import Sol.*;
+import SymbolTable.FunctionSymbol;
+import SymbolTable.Scope;
+import SymbolTable.Symbol;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.*;
 
@@ -17,16 +20,18 @@ import java.util.*;
 public class Annotator extends SolBaseVisitor<Void> {
     ParseTreeProperty<Type> values = new ParseTreeProperty<Type>();
     Map<String, Object> vars = new HashMap<>();
-    Map<String, Object> functions = new HashMap<>();
+    Scope currentScope = new Scope(null);
     SemanticErrors sErr = new SemanticErrors(values);
     Boolean LineError = false;
+    Type Return = Type.VOID;
+    Boolean hasReturn = false;
 
     @Override public Void visitProg(SolParser.ProgContext ctx) {
         visitChildren(ctx);
         int nErr = this.sErr.getNumErr();
-        if(nErr > 0) {
-            new ErrorHandler(nErr + " errors found!");
-        }
+        //if(nErr > 0) {
+          //  new ErrorHandler(nErr + " errors found!");
+        //}
         return null;
     }
 
@@ -36,12 +41,34 @@ public class Annotator extends SolBaseVisitor<Void> {
     }
 
     @Override public Void visitFunction(SolParser.FunctionContext ctx) {
-        visitChildren(ctx);
+        Scope Global = currentScope;
+        Scope functionScope = new Scope(currentScope, ctx.ID(0).getText());
+        visitTypeFunction(ctx.typeFunction());
+        for (int i = 0; i < ctx.type().size(); i++) {
+            visitType(ctx.type(i));
+        }
+        FunctionSymbol fs = new FunctionSymbol(ctx.ID(0).getSymbol(), values.get(ctx.typeFunction()));
+        int size = ctx.ID().size();
+        for (int i = 1; i < size; i++) {
+            fs.add_argument(new SymbolTable.Symbol(ctx.ID(i).getSymbol(), values.get(ctx.type(i-1))));
+        }
+        currentScope.define(fs);
+        currentScope = functionScope;
+        visitBlock(ctx.block());
+        if (!hasReturn && Return != Type.VOID)
+            sErr.TesteErro();
+        currentScope = Global;
+        hasReturn = false;
         return null;
     }
 
     @Override public Void visitReturn(SolParser.ReturnContext ctx) {
         visitChildren(ctx);
+        hasReturn = true;
+        if (Return != values.get(ctx.inst())) {
+            sErr.GenericErr(ctx);
+            //LineError = true;
+        }
         return null;
     }
 
@@ -59,13 +86,17 @@ public class Annotator extends SolBaseVisitor<Void> {
             Type instType = values.get(assignCtx);
             if (instType == null)
                 continue;
-            if (type == Type.REAL && instType == Type.INT){
-                vars.put(assignCtx.ID().getText(), Type.REAL);
+            if (type == Type.REAL && instType == Type.INT) {
                 continue;
             }
+            //if (type == Type.REAL && instType == Type.INT){
+                //vars.put(assignCtx.ID().getText(), Type.REAL);
+                //currentScope.define(new SymbolTable.VariableSymbol(assignCtx.ID().getSymbol(), Type.REAL));
+                //continue;
+            //}
             if (instType != type) {
                 sErr.VarErr(ctx, instType);
-                LineError = true;
+                //LineError = true;
                 break;
             }
         }
@@ -74,12 +105,29 @@ public class Annotator extends SolBaseVisitor<Void> {
 
     @Override public Void visitId(SolParser.IdContext ctx) {
         if (LineError) return null;
-        if (!vars.containsKey(ctx.ID().getText())) {
+       /* if (!vars.containsKey(ctx.ID().getText())) {
             sErr.IDErr(ctx);
             LineError = true;
         }
         else
-            values.put(ctx, (Type) vars.get(ctx.ID().getText()));
+            values.put(ctx, (Type) vars.get(ctx.ID().getText()));*/
+        Symbol currentFunction = currentScope.resolve(currentScope.getName());
+        if (currentFunction != null) {
+            FunctionSymbol fs = (FunctionSymbol) currentFunction;
+            for (Symbol s : fs.get_arguments()) {
+                if (s.lexeme().equals(ctx.ID().getText())) {
+                    values.put(ctx, s.getType());
+                    return null;
+                }
+            }
+        }
+        if (currentScope.resolve(ctx.ID().getText()) == null) {
+            sErr.IDErr(ctx);
+            //LineError = true;
+        } else {
+            Symbol s = currentScope.resolve(ctx.ID().getText());
+            values.put(ctx, s.getType());
+        }
         return null;
     }
 
@@ -87,7 +135,39 @@ public class Annotator extends SolBaseVisitor<Void> {
         if (LineError) return null;
         visitChildren(ctx);
         Type type = values.get(ctx.inst());
-        Type idType = (Type) vars.get(ctx.ID().getText());
+        Symbol currentFunction = currentScope.resolve(currentScope.getName());
+        if (currentFunction != null) {
+            FunctionSymbol fs = (FunctionSymbol) currentFunction;
+            for (Symbol s : fs.get_arguments()) {
+                if (s.lexeme().equals(ctx.ID().getText())) {
+                    if (s.getType() == Type.REAL && type == Type.INT) {
+                        values.put(ctx, Type.REAL);
+                    } else if (type != s.getType()) {
+                        sErr.VarErr(ctx, type);
+                        //LineError = true;
+                    } else
+                        values.put(ctx, s.getType());
+                    return null;
+                }
+            }
+        }
+        if (!currentScope.contains(ctx.ID().getText())) {
+            sErr.IDErr(ctx);
+            //LineError = true;
+        } else {
+            Symbol s = currentScope.resolve(ctx.ID().getText());
+            Type idType = s.getType();
+            if (idType == Type.REAL && type == Type.INT) {
+                //currentScope.define(new SymbolTable.VariableSymbol(ctx.ID().getSymbol(), Type.REAL));
+                values.put(ctx, Type.REAL);
+            } else if (type != idType) {
+                sErr.VarErr(ctx, type);
+                //LineError = true;
+            } else
+                //currentScope.define(new SymbolTable.VariableSymbol(ctx.ID().getSymbol(), type));
+                values.put(ctx, type);
+        }
+        /*Type idType = (Type) vars.get(ctx.ID().getText());
         if (!vars.containsKey(ctx.ID().getText())){
             sErr.IDErr(ctx);
             LineError = true;
@@ -99,19 +179,26 @@ public class Annotator extends SolBaseVisitor<Void> {
             sErr.VarErr(ctx, type);
             LineError = true;
         } else
-            values.put(ctx, type);
+            values.put(ctx, type);*/
         return null;
     }
 
     @Override public Void visitAssignInst(SolParser.AssignInstContext ctx) {
         if (LineError) return null;
+        Type parentType = values.get(ctx.getParent().getChild(0));
         visitChildren(ctx);
         Type type = values.get(ctx.inst());
         values.put(ctx, type);
-        if (vars.containsKey(ctx.ID().getText())){
-            sErr.AssingErr(ctx);
+        //if (vars.containsKey(ctx.ID().getText())){
+            //sErr.AssingErr(ctx);
+        //}
+        if (parentType == Type.REAL && type == Type.INT){
+            //vars.put(ctx.ID().getText(), Type.REAL);
+            currentScope.define(new SymbolTable.VariableSymbol(ctx.ID().getSymbol(), Type.REAL));
+            return null;
         }
-        vars.put(ctx.ID().getText(), values.get(ctx.getParent().getChild(0)));
+        currentScope.define(new SymbolTable.VariableSymbol(ctx.ID().getSymbol(), parentType));
+        //vars.put(ctx.ID().getText(), values.get(ctx.getParent().getChild(0)));
         return null;
     }
 
@@ -154,6 +241,7 @@ public class Annotator extends SolBaseVisitor<Void> {
                 values.put(ctx, Type.VOID);
                 break;
         }
+        Return = values.get(ctx);
         return null;
     }
 
@@ -384,5 +472,9 @@ public class Annotator extends SolBaseVisitor<Void> {
 
     public Map<String, Object> getVars() {
         return vars;
+    }
+
+    public Scope getCurrentScope(){
+        return currentScope;
     }
 }

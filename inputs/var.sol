@@ -1,20 +1,16 @@
-/*
-* Computes all prime numbers upto n
-*/
-int i, j, n = 70;
-bool isPrime;
-string result = "";
-for i = 1 to n do
+int a;
+
+void hello( string s )
 begin
-// check if i is prime
-isPrime = true;
-for j = 2 to i/2 do
-if i % j == 0 then
+    s = "world";
+    print "Hello " + s;
+end
+
+int max( int a, int b )
 begin
-isPrime = false;
-break;
+    int y, z;
+    real e = 5;
+    y = 2;
+    if a > b then
+        z = a;
 end
-if isPrime
-then result = result + " " + i;
-end
-print "Prime numbers upto " + n + ":" + result;

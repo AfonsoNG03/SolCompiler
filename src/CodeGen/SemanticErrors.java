@@ -17,6 +17,10 @@ public class SemanticErrors {
         return this.numErr;
     }
 
+    public void TesteErro() {
+        System.out.println("Existe um erro");
+        numErr++;
+    }
     public void BreakErr(SolParser.BreakStatementContext ctx) {
         System.out.println("line "+ctx.start.getLine()+" error: break must be inside a loop");
         numErr++;
