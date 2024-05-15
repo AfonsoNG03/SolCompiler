@@ -56,7 +56,7 @@ public class Annotator extends SolBaseVisitor<Void> {
         currentScope = functionScope;
         visitBlock(ctx.block());
         if (!hasReturn && Return != Type.VOID)
-            sErr.TesteErro();
+            sErr.TesteErro("Funções sem return");
         currentScope = Global;
         hasReturn = false;
         return null;

@@ -17,8 +17,8 @@ public class SemanticErrors {
         return this.numErr;
     }
 
-    public void TesteErro() {
-        System.out.println("Existe um erro");
+    public void TesteErro(String s) {
+        System.out.println(s);
         numErr++;
     }
     public void BreakErr(SolParser.BreakStatementContext ctx) {

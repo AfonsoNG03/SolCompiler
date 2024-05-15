@@ -19,20 +19,48 @@ import java.util.*;
 
 public class FunctionSemantics extends SolBaseVisitor<Void> {
     ParseTreeProperty<Type> values = new ParseTreeProperty<Type>();
-    Map<String, Object> vars = new HashMap<>();
-    Scope currentScope = new Scope(null);
+    Scope currentScope;
     SemanticErrors sErr = new SemanticErrors(values);
     Boolean LineError = false;
-    Type Return = Type.VOID;
-    Boolean hasReturn = false;
+    Boolean hasMain = false;
+
+    public FunctionSemantics(Scope scope, ParseTreeProperty<Type> values) {
+        super();
+        this.currentScope = scope;
+        this.values = values;
+    }
 
     @Override public Void visitProg(SolParser.ProgContext ctx) {
         visitChildren(ctx);
+        if(!currentScope.contains("main")){
+            sErr.TesteErro("Main function not found");
+            new ErrorHandler("Main function not found");
+        }
         return null;
     }
 
     @Override public Void visitFunctionCallExpression(SolParser.FunctionCallExpressionContext ctx) {
-        visitChildren(ctx);
+        FunctionSymbol function;
+        if (currentScope.resolve(ctx.ID().getText()) == null) {
+            sErr.TesteErro("Function " + ctx.ID().getText() + " not found");
+        } else {
+            Symbol functionTemp = currentScope.resolve(ctx.ID().getText());
+            if (!(functionTemp instanceof FunctionSymbol)) {
+                sErr.TesteErro(ctx.ID().getText() + " is not a function");
+                return null;
+            } else
+                function = (FunctionSymbol) functionTemp;
+            if (function.get_arguments().size() != ctx.inst().size()) {
+                sErr.TesteErro("Function " + ctx.ID().getText() + " has " + function.get_arguments().size() + " parameters");
+            } else {
+                for (int i = 0; i < ctx.inst().size(); i++) {
+                    Type type = values.get(ctx.inst(i));
+                    if (!type.equals(function.get_arguments().get(i).getType())) {
+                        sErr.TesteErro("Function " + ctx.ID().getText() + " parameter " + i + " is of type " + function.get_arguments().get(i).getType());
+                    }
+                }
+            }
+        }
         return null;
     }
 
@@ -168,11 +196,6 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
     public ParseTreeProperty<Type> getValues() {
         return values;
     }
-
-    public Map<String, Object> getVars() {
-        return vars;
-    }
-
     public Scope getCurrentScope(){
         return currentScope;
     }

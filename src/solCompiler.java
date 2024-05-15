@@ -51,6 +51,8 @@ public class solCompiler {
                 }
                 System.out.println();
             }
+            FunctionSemantics functionSemantics = new FunctionSemantics(scope, values);
+            functionSemantics.visit(tree);
             /*CodeGenVisitor assembler = new CodeGenVisitor(values, vars);
             assembler.visit(tree);
             String outputFile = inputFile != null ? inputFile.substring(0, inputFile.lastIndexOf(".")).concat(".tbc") : "output.tbc";
