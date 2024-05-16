@@ -31,7 +31,11 @@ public class solCompiler {
             if (parser.getNumberOfSyntaxErrors() > 0)
                 System.exit(1);
             //
-            Annotator annotator = new Annotator();
+            FunctionsAnnotator Fannotator = new FunctionsAnnotator();
+            Fannotator.visit(tree);
+            //System.out.println("Functions analysis successful");
+            Scope Fscope = Fannotator.getCurrentScope();
+            Annotator annotator = new Annotator(Fscope);
             annotator.visit(tree);
             ParseTreeProperty<Type> values = annotator.getValues();
             Map<String, Object> vars = annotator.getVars();
@@ -51,6 +55,7 @@ public class solCompiler {
                 }
                 System.out.println();
             }*/
+            //System.out.println("Semantic analysis successful");
             FunctionSemantics functionSemantics = new FunctionSemantics(scope, values);
             functionSemantics.visit(tree);
             /*CodeGenVisitor assembler = new CodeGenVisitor(values, vars);

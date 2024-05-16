@@ -1,30 +1,40 @@
-/*void mainnn()
+int x = 10;
+int y = 20;
+
+int soma (int a, int b)
 begin
-int n = fun(1,2,3);
-fun(1,2);
-hello("Maria");
-hello(5);
+    return a + b;
 end
 
-void hello( string s )
- begin
- print "Hello " + s;
- end
-
- real zzz( int x )
- begin
- return x + 1;
- end
-
- bool xpto()
- begin
- print "ola";
- end
-*/
- int fun( int x, int y )
- begin
-bool b = xpto;
-if x < 1 then return x + y;
-else
-return 1;
+void main()
+begin
+    int a = x;
+    int b = y;
+    int c = soma(a, b);
+    int d = subtracao(a, b);
+    int e = max(c, d);
+    print e;
 end
+
+int subtracao (int a, int b)
+begin
+    return a - b;
+end
+
+int max (int a, int b)
+begin
+    if (a > b) then begin
+        return a;
+    end else begin
+        return b;
+    end
+end
+
+
+
+
+
+
+
+
+

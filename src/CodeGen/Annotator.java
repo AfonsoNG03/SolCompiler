@@ -20,12 +20,18 @@ import java.util.*;
 public class Annotator extends SolBaseVisitor<Void> {
     ParseTreeProperty<Type> values = new ParseTreeProperty<Type>();
     Map<String, Object> vars = new HashMap<>();
-    Scope currentScope = new Scope(null);
+    Scope currentScope;
     SemanticErrors sErr = new SemanticErrors(values);
     Boolean LineError = false;
     Type Return = Type.VOID;
     Boolean hasReturn = false;
+    int numIfLines = 0;
+    int numReturnIf = 0;
 
+    public Annotator(Scope scope) {
+        super();
+        this.currentScope = scope;
+    }
     @Override public Void visitProg(SolParser.ProgContext ctx) {
         visitChildren(ctx);
         int nErr = this.sErr.getNumErr();
@@ -42,20 +48,15 @@ public class Annotator extends SolBaseVisitor<Void> {
 
     @Override public Void visitFunction(SolParser.FunctionContext ctx) {
         Scope Global = currentScope;
-        Scope functionScope = new Scope(currentScope, ctx.ID(0).getText());
         visitTypeFunction(ctx.typeFunction());
         for (int i = 0; i < ctx.type().size(); i++) {
             visitType(ctx.type(i));
         }
-        FunctionSymbol fs = new FunctionSymbol(ctx.ID(0).getSymbol(), values.get(ctx.typeFunction()));
-        int size = ctx.ID().size();
-        for (int i = 1; i < size; i++) {
-            fs.add_argument(new SymbolTable.Symbol(ctx.ID(i).getSymbol(), values.get(ctx.type(i-1))));
+        for (Scope child: currentScope.getChildScopes()) {
+            if (child.getName().equals(ctx.ID(0).getText())) {
+                currentScope = child;
+            }
         }
-        currentScope.define(fs);
-        currentScope = functionScope;
-        for (Symbol a : fs.get_arguments())
-            currentScope.define(a);
         visitBlock(ctx.block());
         if (!hasReturn && Return != Type.VOID)
             sErr.TesteErro("Function " + ctx.ID(0).getText() + " has no return statement");
@@ -71,14 +72,27 @@ public class Annotator extends SolBaseVisitor<Void> {
             return null;
         }
         if (Return != values.get(ctx.inst())) {
-            sErr.GenericErr(ctx);
+            sErr.TesteErro("Return type does not match function type");
             //LineError = true;
+        }
+        ParserRuleContext c = ctx.getParent();
+        while (true){
+            //A linha de baixo tá mal
+            if (c instanceof SolParser.BlockContext)
+                break;
+            if (c instanceof SolParser.IfStatementContext){
+                numReturnIf++;
+                break;
+            }
+            c = c.getParent();
         }
         return null;
     }
 
     @Override public Void visitFunctionCall(SolParser.FunctionCallContext ctx) {
         visitChildren(ctx);
+        Type t = currentScope.resolve(ctx.ID().getText()).getType();
+        values.put(ctx, t);
         return null;
     }
 
@@ -276,7 +290,12 @@ public class Annotator extends SolBaseVisitor<Void> {
 
     @Override public Void visitBlockCode(SolParser.BlockCodeContext ctx) {
         LineError = false;
+        Scope Global = currentScope;
+        if (ctx.getParent() instanceof SolParser.BlockContext){
+            currentScope = new Scope(currentScope, "Block" + Global.getName() + Global.getChildScopes().size());
+        }
         visitChildren(ctx);
+        currentScope = Global;
         return null;
     }
 
@@ -316,7 +335,15 @@ public class Annotator extends SolBaseVisitor<Void> {
 
     @Override public Void visitIf(SolParser.IfContext ctx) {
         LineError = false;
+        numIfLines = 0;
+        numReturnIf = 0;
         visitChildren(ctx);
+        numIfLines = ctx.line().size();
+        if (numIfLines != 2)
+            hasReturn = false;
+        else if (numReturnIf == 2)
+            hasReturn = true;
+        else hasReturn = false;
         Type type = values.get(ctx.getChild(1));
         if (type != Type.BOOL) {
             sErr.IfErr(ctx);

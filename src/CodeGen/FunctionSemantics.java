@@ -60,6 +60,9 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
                     }
                 }
             }
+            if (function.getType() != Type.VOID){
+                sErr.TesteErro("Value of " + ctx.ID().getText() + " should be assigned to a variable");
+            }
         }
         return null;
     }
