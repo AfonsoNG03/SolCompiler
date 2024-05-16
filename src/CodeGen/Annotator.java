@@ -78,7 +78,7 @@ public class Annotator extends SolBaseVisitor<Void> {
         ParserRuleContext c = ctx.getParent();
         while (true){
             //A linha de baixo tá mal
-            if (c instanceof SolParser.BlockContext)
+            if (c instanceof SolParser.FunctionContext)
                 break;
             if (c instanceof SolParser.IfStatementContext){
                 numReturnIf++;
@@ -91,8 +91,12 @@ public class Annotator extends SolBaseVisitor<Void> {
 
     @Override public Void visitFunctionCall(SolParser.FunctionCallContext ctx) {
         visitChildren(ctx);
-        Type t = currentScope.resolve(ctx.ID().getText()).getType();
-        values.put(ctx, t);
+        Type t = null;
+        if (currentScope.resolve(ctx.ID().getText()) != null){
+            t = currentScope.resolve(ctx.ID().getText()).getType();
+            values.put(ctx, t);
+        }else
+            sErr.TesteErro("Function " + ctx.ID().getText() + " not found");
         return null;
     }
 
@@ -174,7 +178,8 @@ public class Annotator extends SolBaseVisitor<Void> {
                 }
             }
         }
-        if (!currentScope.contains(ctx.ID().getText())) {
+        //if (!currentScope.contains(ctx.ID().getText())) {
+        if (currentScope.resolve(ctx.ID().getText()) == null) {
             sErr.IDErr(ctx);
             //LineError = true;
         } else {
@@ -314,11 +319,17 @@ public class Annotator extends SolBaseVisitor<Void> {
         LineError = false;
         visitChildren(ctx);
         Type type1 = values.get(ctx.getChild(3));
-        if(!vars.containsKey(ctx.getChild(1).getText())) {
+        if (currentScope.resolve(ctx.getChild(1).getText()) == null) {
             sErr.IDErr(ctx);
             LineError = true;
-        } else {
-            Type type2 = (Type) vars.get(ctx.getChild(1).getText());
+        }
+        //if(!vars.containsKey(ctx.getChild(1).getText())) {
+            //sErr.IDErr(ctx);
+          //  LineError = true;
+        //}
+        else {
+           // Type type2 = (Type) vars.get(ctx.getChild(1).getText());
+            Type type2 = currentScope.resolve(ctx.getChild(1).getText()).getType();
             if (type1 != type2) {
                 sErr.VarErr(ctx, type1);
                 LineError = true;

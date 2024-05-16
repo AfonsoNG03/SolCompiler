@@ -1,40 +1,26 @@
-int x = 10;
-int y = 20;
-
-int soma (int a, int b)
-begin
-    return a + b;
-end
+int i, j, n = 30;
+bool isPrime;
+string result = "";
 
 void main()
 begin
-    int a = x;
-    int b = y;
-    int c = soma(a, b);
-    int d = subtracao(a, b);
-    int e = max(c, d);
-    print e;
+    teste();
 end
 
-int subtracao (int a, int b)
+void teste()
 begin
-    return a - b;
-end
-
-int max (int a, int b)
+for i = 1 to n do
 begin
-    if (a > b) then begin
-        return a;
-    end else begin
-        return b;
-    end
+// check if i is prime
+isPrime = true;
+for j = 2 to i/2 do
+if i % j == 0 then
+begin
+isPrime = false;
+break;
 end
-
-
-
-
-
-
-
-
-
+if isPrime
+then result = result + " " + i;
+end
+print "Prime numbers upto " + n + ":" + result;
+end
