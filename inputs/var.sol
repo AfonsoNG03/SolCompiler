@@ -1,26 +1,16 @@
-int i, j, n = 30;
-bool isPrime;
-string result = "";
-
-void main()
+int sqr( int x )
 begin
-    teste();
+    return x * x;
 end
 
-void teste()
+int sqrsum( int a, int b )
 begin
-for i = 1 to n do
-begin
-// check if i is prime
-isPrime = true;
-for j = 2 to i/2 do
-if i % j == 0 then
-begin
-isPrime = false;
-break;
+    int s;
+    s = sqr(a + b);
+    return s;
 end
-if isPrime
-then result = result + " " + i;
-end
-print "Prime numbers upto " + n + ":" + result;
-end
+
+ void main()
+ begin
+    print sqrsum(3,2);
+ end

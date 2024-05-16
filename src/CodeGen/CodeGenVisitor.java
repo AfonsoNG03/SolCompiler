@@ -9,6 +9,9 @@ package CodeGen; /***
 
 
 import Sol.*;
+import SymbolTable.FunctionSymbol;
+import SymbolTable.Scope;
+import SymbolTable.Symbol;
 import org.antlr.v4.runtime.tree.*;
 
 import java.io.DataOutputStream;
@@ -24,24 +27,50 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     private ArrayList<Instruction> instructions = new ArrayList<>();
     private ArrayList<Instruction> constantPool = new ArrayList<>();
     ParseTreeProperty<Type> values;
-    Map<String, Object> vars;
-    Map<String, Object> functions;
+    Scope currentScope;
+    Map<String, Integer> functions = new HashMap<>();
     private Map<String, Integer> varIndex = new HashMap<>();
+
+    private Map<Symbol, Integer> lovalVarIndex = new HashMap<>();
 
     private int breakLine = -1;
 
     private int Ip = 0;
 
-    public CodeGenVisitor( ParseTreeProperty<Type> values, Map<String, Object> vars) {
+    private int mainLine = -1;
+
+    private int localPointer = 2;
+
+    private FunctionSymbol currentFunction = null;
+
+    private boolean hasReturn = false;
+
+    public CodeGenVisitor( ParseTreeProperty<Type> values, Scope scope) {
         super();
         this.values = values;
-        this.vars = vars;
+        this.currentScope = scope;
     }
 
     @Override public Void visitProg(SolParser.ProgContext ctx) {
-        visitChildren(ctx);
+        /*for (SolParser.VarContext c : ctx.var()) {
+            visitVar(c);
+        }
+        for (SolParser.FunctionContext c : ctx.function()) {
+            if (c.ID(0).getText().equals("main")) {
+                visitFunction(c);
+            }
+        }
+        for (SolParser.FunctionContext c : ctx.function()) {
+            if (!c.ID(0).getText().equals("main")) {
+                visitFunction(c);
+            }
+        }*/
+        emit(OpCode.call, -1);
+        int callLine = Ip++;
         emit(OpCode.halt);
         Ip++;
+        visitChildren(ctx);
+        instructions.set(callLine, new IntInstruction(OpCode.call, mainLine));
         return null;
     }
 
@@ -51,21 +80,59 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     }
 
     @Override public Void visitFunction(SolParser.FunctionContext ctx) {
+        hasReturn = false;
+        localPointer = 2;
+        lovalVarIndex = new HashMap<>();
+        currentFunction = (FunctionSymbol) (currentScope.resolve(ctx.ID(0).getText()));
+        Scope Global = currentScope;
+        for (Scope child : currentScope.getChildScopes()){
+            if (ctx.ID(0).getText().equals(child.getName())){
+                currentScope = child;
+            }
+        }
         visitChildren(ctx);
+        functions.put(ctx.ID(0).getText(), Ip-1);
+        currentScope = Global;
+        if (!hasReturn) {
+            emit(OpCode.ret, currentFunction.get_arguments().size());
+            Ip++;
+        }
         return null;
     }
 
     @Override public Void visitReturn(SolParser.ReturnContext ctx) {
         visitChildren(ctx);
+        Type type = values.get(ctx.inst());
+        int numberArgs = currentFunction.get_arguments().size();
+        if (type == Type.VOID)
+            emit(OpCode.ret, numberArgs);
+        else
+            emit(OpCode.retval, numberArgs);
+        Ip++;
+        hasReturn = true;
         return null;
     }
 
     @Override public Void visitFunctionCall(SolParser.FunctionCallContext ctx) {
         visitChildren(ctx);
+        emit(OpCode.call, functions.get(ctx.ID().getText()));
+        Ip++;
+        /*for (Scope child: currentScope.getChildScopes()) {
+            if (child.getName().equals(ctx.ID().getText())) {
+                int size = ((FunctionSymbol) child.resolve(ctx.ID().getText())).get_arguments().size();
+            }
+        }*/
+
         return null;
     }
 
     @Override public Void visitTypeFunction(SolParser.TypeFunctionContext ctx) {
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override public Void visitBlockCode(SolParser.BlockCodeContext ctx) {
+        visitChildren(ctx);
         return null;
     }
 
@@ -171,7 +238,10 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
 
     @Override public Void visitVar(SolParser.VarContext ctx) {
         int numAssign = ctx.assignInst().size();
-        emit(OpCode.galloc, numAssign);
+        if (currentFunction != null)
+            emit(OpCode.lalloc, numAssign);
+        else
+            emit(OpCode.galloc, numAssign);
         Ip++;
         visitChildren(ctx);
         return null;
@@ -179,20 +249,50 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
 
     @Override public Void visitAssignInst(SolParser.AssignInstContext ctx) {
         visitChildren(ctx);
+        if (currentFunction == null){
         varIndex.put(ctx.ID().getText(), varIndex.size());
         if(ctx.inst() != null){
             emit(OpCode.gstore, varIndex.get(ctx.ID().getText()));
             Ip++;
+        } } else {
+            lovalVarIndex.put(currentScope.resolve_local(ctx.ID().getText()),localPointer);
+            if (ctx.inst() != null){
+                emit(OpCode.lstore,lovalVarIndex.get(currentScope.resolve_local(ctx.ID().getText())));
+            }
         }
         return null;
     }
 
     @Override public Void visitAssign(SolParser.AssignContext ctx) {
         visitChildren(ctx);
-        if (varIndex.containsKey(ctx.ID().getText())) {
-            emit(OpCode.gstore, varIndex.get(ctx.ID().getText()));
-            Ip++;
+        if (currentScope.resolve_local(ctx.ID().getText()) != null) {
+            Symbol s = currentScope.resolve_local(ctx.ID().getText());
+            if (s.getType() == Type.REAL && values.get(ctx.inst()) == Type.INT) {
+                emit(OpCode.itod);
+                Ip++;
+            }
+            if (s.getType() != values.get(ctx.inst())) {
+                throw new RuntimeException("Type mismatch");
+            }
+            /*if (currentFunction != null) {
+                emit(OpCode.lstore, -(currentFunction.get_arguments().size() - currentFunction.get_arguments().indexOf(s)));
+                Ip++;
+            } else {
+                emit(OpCode.gstore, varIndex.get(ctx.ID().getText()));
+                Ip++;
+            }*/
+            if (currentScope.contains(ctx.ID().getText())){
+                emit(OpCode.lstore, localPointer);
+                Ip++;
+                localPointer++;
+                return null;
+            }
+            if (varIndex.containsKey(ctx.ID().getText())) {
+                emit(OpCode.gstore, varIndex.get(ctx.ID().getText()));
+                Ip++;
+            }
         }
+
         return null;
     }
 
@@ -272,6 +372,29 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
 
     @Override public Void visitId(SolParser.IdContext ctx) {
         visitChildren(ctx);
+        if (currentFunction != null) {
+            for (Symbol s : currentFunction.get_arguments()) {
+                if (s.getToken().getText().equals(ctx.ID().getText())) {
+                    emit(OpCode.lload, -(currentFunction.get_arguments().size() - currentFunction.get_arguments().indexOf(s)));
+                    Ip++;
+                    TypeConverter(ctx);
+                    return null;
+                }
+            }
+            if (localPointer > 2){
+                if (currentScope.contains(ctx.ID().getText())){
+                    emit(OpCode.lload, lovalVarIndex.get(currentScope.resolve_local(ctx.ID().getText())));
+                }
+            }
+            /*for (int i = 1; i<=currentFunction.get_arguments().size(); i++) {
+                if (currentFunction.get_arguments().get(i-1).getToken().getText().equals(ctx.ID().getText())) {
+                    emit(OpCode.lload, -i);
+                    Ip++;
+                    TypeConverter(ctx);
+                    return null;
+                }
+            }*/
+        }
         if (varIndex.containsKey(ctx.ID().getText())) {
             emit(OpCode.gload, varIndex.get(ctx.ID().getText()));
             Ip++;

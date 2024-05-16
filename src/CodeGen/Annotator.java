@@ -69,6 +69,7 @@ public class Annotator extends SolBaseVisitor<Void> {
         visitChildren(ctx);
         hasReturn = true;
         if (Return == Type.REAL && values.get(ctx.inst()) == Type.INT) {
+            values.put(ctx, Type.REAL);
             return null;
         }
         if (Return != values.get(ctx.inst())) {
@@ -86,6 +87,7 @@ public class Annotator extends SolBaseVisitor<Void> {
             }
             c = c.getParent();
         }
+        values.put(ctx, Return);
         return null;
     }
 

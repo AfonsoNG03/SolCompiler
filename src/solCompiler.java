@@ -58,7 +58,9 @@ public class solCompiler {
             //System.out.println("Semantic analysis successful");
             FunctionSemantics functionSemantics = new FunctionSemantics(scope, values);
             functionSemantics.visit(tree);
-            /*CodeGenVisitor assembler = new CodeGenVisitor(values, vars);
+            scope = functionSemantics.getCurrentScope();
+            values = functionSemantics.getValues();
+            CodeGenVisitor assembler = new CodeGenVisitor(values, scope);
             assembler.visit(tree);
             String outputFile = inputFile != null ? inputFile.substring(0, inputFile.lastIndexOf(".")).concat(".tbc") : "output.tbc";
             String outputFileTASM = inputFile != null ? inputFile.substring(0, inputFile.lastIndexOf(".")).concat(".tasm") : "output.tasm";
@@ -71,7 +73,7 @@ public class solCompiler {
             if (debug){
                 assembler.print();
             }
-            */
+
         } catch (IOException e) {
             System.out.println(e);
         }
