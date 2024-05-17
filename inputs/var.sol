@@ -1,16 +1,16 @@
 int sqr( int x )
 begin
-    return x * x;
+return x * x;
 end
 
 int sqrsum( int a, int b )
 begin
-    int s;
-    s = sqr(a + b);
-    return s;
-end
+int s;
+s = sqr(a + b);
+ return s;
+ end
 
  void main()
  begin
-    print sqrsum(3,2);
+ print sqrsum(3,2);
  end

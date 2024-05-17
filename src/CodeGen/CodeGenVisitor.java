@@ -70,7 +70,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
         emit(OpCode.halt);
         Ip++;
         visitChildren(ctx);
-        instructions.set(callLine, new IntInstruction(OpCode.call, mainLine));
+        instructions.set(callLine, new IntInstruction(OpCode.call, functions.get("main")));
         return null;
     }
 
@@ -90,8 +90,8 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 currentScope = child;
             }
         }
+        functions.put(ctx.ID(0).getText(), Ip);
         visitChildren(ctx);
-        functions.put(ctx.ID(0).getText(), Ip-1);
         currentScope = Global;
         if (!hasReturn) {
             emit(OpCode.ret, currentFunction.get_arguments().size());
@@ -132,6 +132,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     }
 
     @Override public Void visitBlockCode(SolParser.BlockCodeContext ctx) {
+        localPointer+= 2;
         visitChildren(ctx);
         return null;
     }
@@ -258,6 +259,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
             lovalVarIndex.put(currentScope.resolve_local(ctx.ID().getText()),localPointer);
             if (ctx.inst() != null){
                 emit(OpCode.lstore,lovalVarIndex.get(currentScope.resolve_local(ctx.ID().getText())));
+                Ip++;
             }
         }
         return null;
@@ -384,6 +386,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
             if (localPointer > 2){
                 if (currentScope.contains(ctx.ID().getText())){
                     emit(OpCode.lload, lovalVarIndex.get(currentScope.resolve_local(ctx.ID().getText())));
+                    Ip++;
                 }
             }
             /*for (int i = 1; i<=currentFunction.get_arguments().size(); i++) {
