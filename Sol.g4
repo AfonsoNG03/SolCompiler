@@ -37,9 +37,9 @@ var : type assignInst (COMMA assignInst)* SEMICOLON;
 
 block : BEGIN  var* line* END;
 
-type : op=(TYPEINT | TYPEDOUBLE | TYPESTRING | TYPEBOOL);
-
 typeFunction : op=(TYPEINT | TYPEDOUBLE | TYPESTRING | TYPEBOOL | TYPEVOID);
+
+type : op=(TYPEINT | TYPEDOUBLE | TYPESTRING | TYPEBOOL);
 
 while : WHILE inst DO line;
 
