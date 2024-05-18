@@ -19,24 +19,10 @@ import java.util.*;
 
 public class FunctionsAnnotator extends SolBaseVisitor<Void> {
     ParseTreeProperty<Type> values = new ParseTreeProperty<Type>();
-    Map<String, Object> vars = new HashMap<>();
     Scope currentScope = new Scope(null);
-    SemanticErrors sErr = new SemanticErrors(values);
+    //SemanticErrors sErr = new SemanticErrors(values);
     Boolean LineError = false;
     Type Return = Type.VOID;
-    Boolean hasReturn = false;
-    int numIfLines = 0;
-    int numReturnIf = 0;
-
-    @Override public Void visitProg(SolParser.ProgContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitFunctionCallExpression(SolParser.FunctionCallExpressionContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
 
     @Override public Void visitFunction(SolParser.FunctionContext ctx) {
         Scope Global = currentScope;

@@ -456,8 +456,9 @@ public class ByteReader {
                 }
                 break;
             case call:
+                int Size = stack.size();
                 stack.push(FP);
-                FP = stack.size();
+                FP = Size;
                 stack.push(IP);
                 IP = ((IntInstruction) inst).getArg();
                 break;
@@ -532,6 +533,10 @@ public class ByteReader {
         if(global != null){
             System.out.println("Globals: " + global);
         }
+
+        System.out.println("FP: " + FP);
+        System.out.println("IP: " + IP);
+        System.out.println();
     }
 
 }

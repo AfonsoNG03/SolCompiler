@@ -21,8 +21,6 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
     ParseTreeProperty<Type> values = new ParseTreeProperty<Type>();
     Scope currentScope;
     SemanticErrors sErr = new SemanticErrors(values);
-    Boolean LineError = false;
-    Boolean hasMain = false;
 
     public FunctionSemantics(Scope scope, ParseTreeProperty<Type> values) {
         super();
@@ -79,11 +77,6 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
         return null;
     }
 
-    @Override public Void visitReturn(SolParser.ReturnContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
     @Override public Void visitFunctionCall(SolParser.FunctionCallContext ctx) {
         FunctionSymbol function;
         if (currentScope.resolve(ctx.ID().getText()) == null) {
@@ -110,16 +103,6 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
         return null;
     }
 
-
-    @Override public Void visitVar(SolParser.VarContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitId(SolParser.IdContext ctx) {
-        return null;
-    }
-
     @Override public Void visitAssign(SolParser.AssignContext ctx) {
         visitChildren(ctx);
         Symbol s = null;
@@ -135,105 +118,6 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
             sErr.TesteErro("Type mismatch");
         }
             return null;
-    }
-
-    @Override public Void visitAssignInst(SolParser.AssignInstContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-
-    @Override public Void visitType(SolParser.TypeContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitTypeFunction(SolParser.TypeFunctionContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitInstruction(SolParser.InstructionContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-
-    @Override public Void visitPrint(SolParser.PrintContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitBlockCode(SolParser.BlockCodeContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitWhile(SolParser.WhileContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitFor(SolParser.ForContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitIf(SolParser.IfContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    //Check if it is inside of while or for loop
-    @Override public Void visitBreakStatement(SolParser.BreakStatementContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-
-    @Override public Void visitOr(SolParser.OrContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitAddSub(SolParser.AddSubContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitEqual(SolParser.EqualContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitAnd(SolParser.AndContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitLiteral(SolParser.LiteralContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitRel(SolParser.RelContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitUnary(SolParser.UnaryContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitParen(SolParser.ParenContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitMultDiv(SolParser.MultDivContext ctx) {
-        visitChildren(ctx);
-        return null;
     }
 
     public ParseTreeProperty<Type> getValues() {

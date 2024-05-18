@@ -33,53 +33,13 @@ public class solCompiler {
             //
             FunctionsAnnotator Fannotator = new FunctionsAnnotator();
             Fannotator.visit(tree);
-            //System.out.println("Functions analysis successful");
             Scope Fscope = Fannotator.getCurrentScope();
             Annotator annotator = new Annotator(Fscope);
             annotator.visit(tree);
             ParseTreeProperty<Type> values = annotator.getValues();
-            Map<String, Object> vars = annotator.getVars();
             Scope scope = annotator.getCurrentScope();
             Map<String, Symbol> scopes = scope.getSymbols();
             List<Scope> children = scope.getChildScopes();
-            System.out.println(scope.toString());
-            for (Map.Entry<String, Symbol> entry : scopes.entrySet()) {
-                System.out.println(entry.getValue().toString());
-            }
-            System.out.println();
-            for (Scope child : children) {
-                System.out.println(child.toString());
-                scopes = child.getSymbols();
-                for (Map.Entry<String, Symbol> entry : scopes.entrySet()) {
-                    System.out.println(entry.getValue().toString());
-                }
-                for (Scope child2 : child.getChildScopes()) {
-                    System.out.println(child2.toString());
-                    scopes = child2.getSymbols();
-                    for (Map.Entry<String, Symbol> entry : scopes.entrySet()) {
-                        System.out.println(entry.getValue().toString());
-                    }
-
-                    for (Scope child3 : child2.getChildScopes()) {
-                        System.out.println(child3.toString());
-                        scopes = child3.getSymbols();
-                        for (Map.Entry<String, Symbol> entry : scopes.entrySet()) {
-                            System.out.println(entry.getValue().toString());
-                        }
-
-
-                        for (Scope child4 : child3.getChildScopes()) {
-                            System.out.println(child4.toString());
-                            scopes = child4.getSymbols();
-                            for (Map.Entry<String, Symbol> entry : scopes.entrySet()) {
-                                System.out.println(entry.getValue().toString());
-                            }
-                        }
-                    }
-                }
-                System.out.println();
-            }
-            //System.out.println("Semantic analysis successful");
             FunctionSemantics functionSemantics = new FunctionSemantics(scope, values);
             functionSemantics.visit(tree);
             scope = functionSemantics.getCurrentScope();
