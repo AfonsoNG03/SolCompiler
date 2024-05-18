@@ -39,11 +39,17 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
 
     private int mainLine = -1;
 
-    private int localPointer = 2;
+    private int localPointer = 1;
 
     private FunctionSymbol currentFunction = null;
 
     private boolean hasReturn = false;
+
+    private int NumberToPop = 0;
+
+    private ArrayList<String> unknownFunctions = new ArrayList<>();
+
+    private int blockCounter = 0;
 
     public CodeGenVisitor( ParseTreeProperty<Type> values, Scope scope) {
         super();
@@ -65,23 +71,40 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 visitFunction(c);
             }
         }*/
+
+        for (SolParser.VarContext c : ctx.var()) {
+            visitVar(c);
+        }
         emit(OpCode.call, -1);
         int callLine = Ip++;
         emit(OpCode.halt);
         Ip++;
-        visitChildren(ctx);
+        for (SolParser.FunctionContext c : ctx.function()) {
+            functions.put(c.ID(0).getText(), 0);
+        }
+        for (SolParser.FunctionContext c : ctx.function()) {
+            visitFunction(c);
+        }
+        //visitChildren(ctx);
         instructions.set(callLine, new IntInstruction(OpCode.call, functions.get("main")));
         return null;
     }
 
     @Override public Void visitFunctionCallExpression(SolParser.FunctionCallExpressionContext ctx) {
         visitChildren(ctx);
+        if (functions.get(ctx.ID().getText()) == 0){
+            functions.put(ctx.ID().getText(), Ip);
+            unknownFunctions.add(ctx.ID().getText());
+        }
+        emit(OpCode.call, functions.get(ctx.ID().getText()));
+        Ip++;
         return null;
     }
 
     @Override public Void visitFunction(SolParser.FunctionContext ctx) {
         hasReturn = false;
-        localPointer = 2;
+        localPointer = 1;
+        int initial = localPointer;
         lovalVarIndex = new HashMap<>();
         currentFunction = (FunctionSymbol) (currentScope.resolve(ctx.ID(0).getText()));
         Scope Global = currentScope;
@@ -90,10 +113,19 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 currentScope = child;
             }
         }
+        if (unknownFunctions.contains(ctx.ID(0).getText())) {
+            int line = functions.get(ctx.ID(0).getText());
+            instructions.set(line, new IntInstruction(OpCode.call, Ip));
+            unknownFunctions.remove(ctx.ID(0).getText());
+        }
         functions.put(ctx.ID(0).getText(), Ip);
         visitChildren(ctx);
         currentScope = Global;
         if (!hasReturn) {
+            if ((localPointer - initial) > 0) {
+                emit(OpCode.pop, localPointer - initial);
+                Ip++;
+            }
             emit(OpCode.ret, currentFunction.get_arguments().size());
             Ip++;
         }
@@ -108,13 +140,17 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
             emit(OpCode.ret, numberArgs);
         else
             emit(OpCode.retval, numberArgs);
-        Ip++;
         hasReturn = true;
+        Ip++;
         return null;
     }
 
     @Override public Void visitFunctionCall(SolParser.FunctionCallContext ctx) {
         visitChildren(ctx);
+        if (functions.get(ctx.ID().getText()) == 0){
+            functions.put(ctx.ID().getText(), Ip);
+            unknownFunctions.add(ctx.ID().getText());
+        }
         emit(OpCode.call, functions.get(ctx.ID().getText()));
         Ip++;
         /*for (Scope child: currentScope.getChildScopes()) {
@@ -132,8 +168,22 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     }
 
     @Override public Void visitBlockCode(SolParser.BlockCodeContext ctx) {
-        localPointer+= 2;
+        int initial = localPointer;
+        Scope global = currentScope;
+        //if (!(ctx.getParent() instanceof SolParser.FunctionContext))
+        if (ctx.getParent() instanceof SolParser.BlockContext) {
+            blockCounter = 0;
+        }
+        if (currentScope.getChildScopes().size() > 0) {
+            currentScope = currentScope.getChildScopes().get(blockCounter);
+            blockCounter++;
+        }
         visitChildren(ctx);
+        currentScope = global;
+        int finalv = localPointer - initial;
+        localPointer -= finalv;
+        emit(OpCode.pop, finalv);
+        Ip++;
         return null;
     }
 
@@ -239,8 +289,13 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
 
     @Override public Void visitVar(SolParser.VarContext ctx) {
         int numAssign = ctx.assignInst().size();
-        if (currentFunction != null)
+        if (currentFunction != null) {
             emit(OpCode.lalloc, numAssign);
+            for (int i = 0 ; i<numAssign; i++){
+            localPointer++;
+            lovalVarIndex.put(currentScope.resolve_local(ctx.assignInst(i).ID().getText()) ,localPointer);
+            }
+        }
         else
             emit(OpCode.galloc, numAssign);
         Ip++;
@@ -256,7 +311,6 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
             emit(OpCode.gstore, varIndex.get(ctx.ID().getText()));
             Ip++;
         } } else {
-            lovalVarIndex.put(currentScope.resolve_local(ctx.ID().getText()),localPointer);
             if (ctx.inst() != null){
                 emit(OpCode.lstore,lovalVarIndex.get(currentScope.resolve_local(ctx.ID().getText())));
                 Ip++;
@@ -286,7 +340,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
             if (currentScope.contains(ctx.ID().getText())){
                 emit(OpCode.lstore, localPointer);
                 Ip++;
-                localPointer++;
+                //localPointer++;
                 return null;
             }
             if (varIndex.containsKey(ctx.ID().getText())) {
@@ -383,7 +437,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                     return null;
                 }
             }
-            if (localPointer > 2){
+            if (localPointer > 1){
                 if (currentScope.contains(ctx.ID().getText())){
                     emit(OpCode.lload, lovalVarIndex.get(currentScope.resolve_local(ctx.ID().getText())));
                     Ip++;

@@ -1,16 +1,10 @@
-int sqr( int x )
+void main()
 begin
-return x * x;
+print fact(3);
 end
 
-int sqrsum( int a, int b )
+int fact( int n )
 begin
-int s;
-s = sqr(a + b);
- return s;
- end
-
- void main()
- begin
- print sqrsum(3,2);
+if n == 0 then return 1;
+return n * fact(n-1);
  end

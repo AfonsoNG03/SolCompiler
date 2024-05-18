@@ -1,19 +1,19 @@
-L0: call 14
+L0: call 2
 L1: halt
-L2: lload -1
-L3: lload -1
-L4: imul
-L5: retval 1
-L6: lalloc 1
-L7: lload -2
-L8: lload -1
-L9: iadd
-L10: call 2
-L11: lstore 2
-L12: lload 2
-L13: retval 2
-L14: iconst 3
-L15: iconst 2
+L2: iconst 3
+L3: call 6
+L4: iprint
+L5: ret 0
+L6: lload -1
+L7: iconst 0
+L8: ieq
+L9: jumpf L12
+L10: iconst 1
+L11: retval 1
+L12: lload -1
+L13: lload -1
+L14: iconst 1
+L15: isub
 L16: call 6
-L17: iprint
-L18: ret 0
+L17: imul
+L18: retval 1

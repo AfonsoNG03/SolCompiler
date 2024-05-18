@@ -42,7 +42,7 @@ public class solCompiler {
             Scope scope = annotator.getCurrentScope();
             Map<String, Symbol> scopes = scope.getSymbols();
             List<Scope> children = scope.getChildScopes();
-            /*System.out.println(scope.toString());
+            System.out.println(scope.toString());
             for (Map.Entry<String, Symbol> entry : scopes.entrySet()) {
                 System.out.println(entry.getValue().toString());
             }
@@ -53,8 +53,32 @@ public class solCompiler {
                 for (Map.Entry<String, Symbol> entry : scopes.entrySet()) {
                     System.out.println(entry.getValue().toString());
                 }
+                for (Scope child2 : child.getChildScopes()) {
+                    System.out.println(child2.toString());
+                    scopes = child2.getSymbols();
+                    for (Map.Entry<String, Symbol> entry : scopes.entrySet()) {
+                        System.out.println(entry.getValue().toString());
+                    }
+
+                    for (Scope child3 : child2.getChildScopes()) {
+                        System.out.println(child3.toString());
+                        scopes = child3.getSymbols();
+                        for (Map.Entry<String, Symbol> entry : scopes.entrySet()) {
+                            System.out.println(entry.getValue().toString());
+                        }
+
+
+                        for (Scope child4 : child3.getChildScopes()) {
+                            System.out.println(child4.toString());
+                            scopes = child4.getSymbols();
+                            for (Map.Entry<String, Symbol> entry : scopes.entrySet()) {
+                                System.out.println(entry.getValue().toString());
+                            }
+                        }
+                    }
+                }
                 System.out.println();
-            }*/
+            }
             //System.out.println("Semantic analysis successful");
             FunctionSemantics functionSemantics = new FunctionSemantics(scope, values);
             functionSemantics.visit(tree);
