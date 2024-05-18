@@ -54,6 +54,7 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
                 for (int i = 0; i < ctx.inst().size(); i++) {
                     Type type = values.get(ctx.inst(i));
                     if (!type.equals(function.get_arguments().get(i).getType())) {
+                        if (!(type == Type.INT && function.get_arguments().get(i).getType() == Type.REAL))
                         sErr.TesteErro("Function " + ctx.ID().getText() + " parameter " + i + " is of type " + function.get_arguments().get(i).getType());
                     }
                 }
@@ -94,7 +95,8 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
                 for (int i = 0; i < ctx.inst().size(); i++) {
                     Type type = values.get(ctx.inst(i));
                     if (!type.equals(function.get_arguments().get(i).getType())) {
-                        sErr.TesteErro("Function " + ctx.ID().getText() + " parameter " + i + " is of type " + function.get_arguments().get(i).getType());
+                        if (!(type == Type.INT && function.get_arguments().get(i).getType() == Type.REAL))
+                            sErr.TesteErro("Function " + ctx.ID().getText() + " parameter " + i + " is of type " + function.get_arguments().get(i).getType());
                     }
                 }
             }

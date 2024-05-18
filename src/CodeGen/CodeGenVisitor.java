@@ -38,7 +38,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     private FunctionSymbol currentFunction = null;
     private boolean hasReturn = false;
     private boolean hasIfReturn = false;
-    private ArrayList<String> unknownFunctions = new ArrayList<>();
+    private Map<Integer, String> unknownFunctions = new HashMap<>();
     private int blockCounter = 0;
 
     public CodeGenVisitor( ParseTreeProperty<Type> values, Scope scope) {
@@ -69,9 +69,12 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     @Override public Void visitFunctionCallExpression(SolParser.FunctionCallExpressionContext ctx) {
         visitChildren(ctx);
         if (functions.get(ctx.ID().getText()) == 0){
+            unknownFunctions.put(Ip, ctx.ID().getText());
+        }
+        /*if (functions.get(ctx.ID().getText()) == 0){
             functions.put(ctx.ID().getText(), Ip);
             unknownFunctions.add(ctx.ID().getText());
-        }
+        }*/
         emit(OpCode.call, functions.get(ctx.ID().getText()));
         Ip++;
         return null;
@@ -89,11 +92,19 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 currentScope = child;
             }
         }
-        if (unknownFunctions.contains(ctx.ID(0).getText())) {
+
+        if (unknownFunctions.containsValue(ctx.ID(0).getText())){
+            for (Map.Entry<Integer, String> entry : unknownFunctions.entrySet()){
+                if (entry.getValue().equals(ctx.ID(0).getText())){
+                    instructions.set(entry.getKey(), new IntInstruction(OpCode.call, Ip));
+                }
+            }
+        }
+        /*if (unknownFunctions.contains(ctx.ID(0).getText())) {
             int line = functions.get(ctx.ID(0).getText());
             instructions.set(line, new IntInstruction(OpCode.call, Ip));
             unknownFunctions.remove(ctx.ID(0).getText());
-        }
+        }*/
         functions.put(ctx.ID(0).getText(), Ip);
         visitChildren(ctx);
         currentScope = Global;
@@ -134,9 +145,12 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
     @Override public Void visitFunctionCall(SolParser.FunctionCallContext ctx) {
         visitChildren(ctx);
         if (functions.get(ctx.ID().getText()) == 0){
+            unknownFunctions.put(Ip, ctx.ID().getText());
+        }
+        /*if (functions.get(ctx.ID().getText()) == 0){
             functions.put(ctx.ID().getText(), Ip);
             unknownFunctions.add(ctx.ID().getText());
-        }
+        }*/
         emit(OpCode.call, functions.get(ctx.ID().getText()));
         Ip++;
         return null;
@@ -394,7 +408,12 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 break;
         }
         Ip++;
-        TypeConverter(ctx);
+        if (!(ctx.getParent() instanceof SolParser.FunctionCallContext) && !(ctx.getParent() instanceof SolParser.FunctionCallExpressionContext)) {
+            TypeConverter(ctx);
+        } else if (values.get(ctx.getParent()) == Type.REAL && ctx.op.getType() == SolParser.INT) {
+            emit(OpCode.itod);
+            Ip++;
+        }
         return null;
     }
 
