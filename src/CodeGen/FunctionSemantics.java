@@ -31,8 +31,8 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
     @Override public Void visitProg(SolParser.ProgContext ctx) {
         visitChildren(ctx);
         if(!currentScope.contains("main")){
-            sErr.TesteErro("Main function not found");
-            new ErrorHandler("Main function not found");
+            sErr.TesteErro("");
+            new ErrorHandler("error: Main function not found");
         }
         return null;
     }
@@ -40,27 +40,27 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
     @Override public Void visitFunctionCallExpression(SolParser.FunctionCallExpressionContext ctx) {
         FunctionSymbol function;
         if (currentScope.resolve(ctx.ID().getText()) == null) {
-            sErr.TesteErro("Function " + ctx.ID().getText() + " not found");
+            sErr.TesteErro("line " + ctx.start.getLine() + " error: Function " + ctx.ID().getText() + " not found");
         } else {
             Symbol functionTemp = currentScope.resolve(ctx.ID().getText());
             if (!(functionTemp instanceof FunctionSymbol)) {
-                sErr.TesteErro(ctx.ID().getText() + " is not a function");
+                sErr.TesteErro("line " + ctx.start.getLine() + " error: " + ctx.ID().getText() + " is not a function");
                 return null;
             } else
                 function = (FunctionSymbol) functionTemp;
             if (function.get_arguments().size() != ctx.inst().size()) {
-                sErr.TesteErro("Function " + ctx.ID().getText() + " has " + function.get_arguments().size() + " parameters");
+                sErr.TesteErro("line " + ctx.start.getLine() + " error: Function " + ctx.ID().getText() + " has " + function.get_arguments().size() + " parameters");
             } else {
                 for (int i = 0; i < ctx.inst().size(); i++) {
                     Type type = values.get(ctx.inst(i));
                     if (!type.equals(function.get_arguments().get(i).getType())) {
                         if (!(type == Type.INT && function.get_arguments().get(i).getType() == Type.REAL))
-                        sErr.TesteErro("Function " + ctx.ID().getText() + " parameter " + i + " is of type " + function.get_arguments().get(i).getType());
+                            sErr.TesteErro("line " + ctx.start.getLine() + " error: Function " + ctx.ID().getText() + " parameter " + i + " is of type " + function.get_arguments().get(i).getType());
                     }
                 }
             }
             if (function.getType() != Type.VOID){
-                sErr.TesteErro("Value of " + ctx.ID().getText() + " should be assigned to a variable");
+                sErr.TesteErro("line " + ctx.start.getLine() + " error: Value of " + ctx.ID().getText() + " should be assigned to a variable");
             }
         }
         return null;
@@ -81,22 +81,22 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
     @Override public Void visitFunctionCall(SolParser.FunctionCallContext ctx) {
         FunctionSymbol function;
         if (currentScope.resolve(ctx.ID().getText()) == null) {
-            sErr.TesteErro("Function " + ctx.ID().getText() + " not found");
+            sErr.TesteErro("line " + ctx.start.getLine() + " error: Function " + ctx.ID().getText() + " not found");
         } else {
             Symbol functionTemp = currentScope.resolve(ctx.ID().getText());
             if (!(functionTemp instanceof FunctionSymbol)) {
-                sErr.TesteErro(ctx.ID().getText() + " is not a function");
+                sErr.TesteErro("line " + ctx.start.getLine() + " error: " + ctx.ID().getText() + " is not a function");
                 return null;
             } else
                 function = (FunctionSymbol) functionTemp;
             if (function.get_arguments().size() != ctx.inst().size()) {
-                sErr.TesteErro("Function " + ctx.ID().getText() + " has " + function.get_arguments().size() + " parameters");
+                sErr.TesteErro("line " + ctx.start.getLine() + " error: Function " + ctx.ID().getText() + " has " + function.get_arguments().size() + " parameters");
             } else {
                 for (int i = 0; i < ctx.inst().size(); i++) {
                     Type type = values.get(ctx.inst(i));
                     if (!type.equals(function.get_arguments().get(i).getType())) {
                         if (!(type == Type.INT && function.get_arguments().get(i).getType() == Type.REAL))
-                            sErr.TesteErro("Function " + ctx.ID().getText() + " parameter " + i + " is of type " + function.get_arguments().get(i).getType());
+                            sErr.TesteErro("line " + ctx.start.getLine() + " error: Function " + ctx.ID().getText() + " parameter " + i + " is of type " + function.get_arguments().get(i).getType());
                     }
                 }
             }
@@ -117,7 +117,7 @@ public class FunctionSemantics extends SolBaseVisitor<Void> {
             values.put(ctx, Type.REAL);
         }
         else if(s.getType() != values.get(ctx.inst())){
-            sErr.TesteErro("Type mismatch");
+            sErr.TesteErro("line " + ctx.start.getLine() + " error: Type mismatch");
         }
             return null;
     }

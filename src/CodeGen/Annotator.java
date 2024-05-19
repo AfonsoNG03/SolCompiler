@@ -58,7 +58,7 @@ public class Annotator extends SolBaseVisitor<Void> {
         }
         visitBlock(ctx.block());
         if (!hasReturn && Return != Type.VOID)
-            sErr.TesteErro("Function " + ctx.ID(0).getText() + " has no return statement");
+            sErr.TesteErro("line " + ctx.start.getLine() + " error: Function " + ctx.ID(0).getText() + " has no return statement");
         currentScope = Global;
         hasReturn = false;
         return null;
@@ -72,7 +72,7 @@ public class Annotator extends SolBaseVisitor<Void> {
             return null;
         }
         if (Return != values.get(ctx.inst())) {
-            sErr.TesteErro("Return type does not match function type");
+            sErr.TesteErro("line " + ctx.start.getLine() + " error: Return type does not match function type");
             //LineError = true;
         }
         ParserRuleContext c = ctx.getParent();
@@ -96,7 +96,7 @@ public class Annotator extends SolBaseVisitor<Void> {
             t = currentScope.resolve(ctx.ID().getText()).getType();
             values.put(ctx, t);
         }else
-            sErr.TesteErro("Function " + ctx.ID().getText() + " not found");
+            sErr.TesteErro("line " + ctx.start.getLine() + " error: Function " + ctx.ID().getText() + " not found");
         return null;
     }
 
@@ -137,7 +137,7 @@ public class Annotator extends SolBaseVisitor<Void> {
             sErr.IDErr(ctx);
             //LineError = true;
         } else if(currentScope.resolve(ctx.ID().getText()) instanceof FunctionSymbol){
-            sErr.TesteErro(ctx.ID().getText() + " é uma função");
+            sErr.TesteErro("line " + ctx.start.getLine() + " error: " +ctx.ID().getText() + " is a function");
         }else {
             Symbol s = currentScope.resolve(ctx.ID().getText());
             values.put(ctx, s.getType());
