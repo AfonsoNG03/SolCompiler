@@ -16,7 +16,7 @@ inst :  op=(GALLOC | GLOAD | GSTORE) INT   #memoryOp
         | op=(IADD | ISUB | IMULT | IDIV | IMOD | DADD | DSUB | DMULT | DDIV | SADD) #operations
         | op=(ITOS | ITOD | DTOS | BTOS) #typeConversion
         | op=(IPRINT | DPRINT | SPRINT | BPRINT) #printStat
-        | op=(LALLOC | LLOAD | LSTORE | POP | CALL | RETVAL | RET) #newInsts
+        | op=(LALLOC | LLOAD | LSTORE | POP | CALL | RETVAL | RET) INT #newInsts
         | LABEL (',' LABEL)* ':' inst #label
         | HALT #halt
         ;

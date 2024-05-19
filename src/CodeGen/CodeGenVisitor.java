@@ -626,7 +626,7 @@ public class CodeGenVisitor extends SolBaseVisitor<Void> {
                 writer.write("L" + i++ + ": ");
                 if (instr instanceof IntInstruction) {
                     if (instr.getOp() == OpCode.jump || instr.getOp() == OpCode.jumpf || instr.getOp() == OpCode.jumpt || instr.getOp() == OpCode.call)
-                        writer.write(instr.getOp() + " L" + ((IntInstruction) instr).getArg() + "\n");
+                        writer.write(instr.getOp() + " " + ((IntInstruction) instr).getArg() + "\n");
                     else if (instr.getOp() == OpCode.dconst){
                         DoubleInstruction a = (DoubleInstruction) constantPool.get(((IntInstruction) instr).getArg());
                         writer.write(instr.getOp() + " "  + a.getArg() +  "\n");
